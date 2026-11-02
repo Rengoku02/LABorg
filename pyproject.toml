@@ -49,6 +49,9 @@ DJANGO_SETTINGS_MODULE = "labstock.settings.test"
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+markers = [
+    "e2e: browser end-to-end tests (Playwright); deselect with -m \"not e2e\"",
+]
 filterwarnings = [
     "error::DeprecationWarning:apps.*",
     "error::DeprecationWarning:labstock.*",

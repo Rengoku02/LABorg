@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_DB: labstock
+          POSTGRES_USER: labstock
+          POSTGRES_PASSWORD: labstock
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U labstock -d labstock"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://labstock:labstock@localhost:5432/labstock
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies (locked)
+        run: uv sync --frozen
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Migrations are up to date
+        run: uv run python manage.py makemigrations --check --dry-run --settings=labstock.settings.test
+
+      - name: Tests
+        run: uv run pytest -q -m "not e2e"
