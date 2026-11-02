@@ -1,0 +1,4 @@
+owner_email,item_name,vendor,catalog_number,lot,type,containers,size,location,temperature,position,share,source,date,expiry,opened,mta,notes
+priya@example.edu,GAPDH (14C10) Rabbit mAb,Cell Signaling Technology,2118S,0012,antibody,1,100 uL,Room 210 / -20 B / Shelf 2 / Box 4,-20C,A1,ask-first,purchased,2025-03-14,,yes,,1:1000 for WB
+priya@example.edu,HEK293T,ATCC,CRL-3216,,cell_line,3,1 vial,,LN2,,ask-first,previous_lab,2023-09-01,,,yes,passage 12
+raj@example.edu,Q5 High-Fidelity DNA Polymerase,New England Biolabs,M0491S,,enzyme,1,100 units,,-20C,,shared,purchased,,2026-11,yes,,

@@ -1,0 +1,1271 @@
+openapi: 3.0.3
+info:
+  title: Quartzy Public API
+  version: null
+  description: >
+
+    <br />
+
+
+    - Quartzy's Public APIs listed here are generally available to all users. If
+    you have an active user account in Quartzy, then you can start using this
+    API right away.
+
+    - If you have any questions about using this API, please reach out to
+    Quartzy support at <a
+    href="mailto:support@quartzy.com">support@quartzy.com</a>.
+
+
+    &#8505; For code samples, please view the [Samples](/samples/curl) page.
+
+
+    # Authentication
+
+    ## AccessToken
+
+    Quartzy's API supports AccessTokens generated for specific users
+
+    in an Organization. These AccessTokens may be generated from User
+
+    settings inside the Quartzy Application.
+
+    1. Load [AccessToken
+    Settings](https://app.quartzy.com/profile/access-tokens)
+
+    2. Click "Add AccessToken"
+
+    3. Copy the generated AccessToken
+
+    4. Provide this AccessToken to your API calls under the `Access-Token`
+    header
+  termsOfService: https://www.quartzy.com/terms-of-service
+  contact:
+    name: Quartzy Support
+    url: https://support.quartzy.com
+    email: support@quartzy.com
+servers:
+  - url: https://api.quartzy.com
+    description: Production
+paths:
+  /healthz:
+    get:
+      summary: Check service health
+      operationId: health
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '500':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /inventory-items:
+    get:
+      summary: List and filter inventory items
+      operationId: inventoryItemList
+      tags:
+        - Inventory Item
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The page of results to retrieve
+        - name: lab_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The Lab ID to filter on
+      responses:
+        '200':
+          description: The matching inventory items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItems'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /inventory-items/{id}:
+    get:
+      summary: Get an Inventory Item
+      operationId: inventoryItemRetrieve
+      tags:
+        - Inventory Item
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Inventory Item to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Inventory Item matching the ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Order Request
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Update inventory item quantity
+      deprecated: true
+      description: >
+        Deprecated in favor of [Update inventory item instance
+        quantity](#tag/Inventory-Item/operation/inventoryItemInstanceUpdate).
+
+
+        This endpoint remains available for labs that have not been migrated to
+        inventory item instances. For migrated labs, use `PUT
+        /inventory-items/{itemId}/instances/{itemInstanceId}` to update quantity
+        on a specific instance. See the [Migrating to Inventory Item
+        Instances](/guides/inventory-item-instances) guide for details.
+      tags:
+        - Inventory Item
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the inventory item to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                quantity:
+                  type: string
+      responses:
+        '200':
+          description: The inventory item that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Inventory Item
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /inventory-items/{itemId}/instances/{itemInstanceId}:
+    put:
+      summary: Update inventory item instance quantity
+      operationId: inventoryItemInstanceUpdate
+      tags:
+        - Inventory Item
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: The id of the inventory item to update
+          schema:
+            type: string
+        - name: itemInstanceId
+          in: path
+          required: true
+          description: The id of the inventory item instance to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                quantity:
+                  type: string
+      responses:
+        '200':
+          description: The inventory item of the instance that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Inventory Item Instance
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /labs:
+    get:
+      summary: Get a list of labs
+      operationId: labList
+      tags:
+        - Lab
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: organization_id
+          in: query
+          description: The Organization ID to filter on
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: The page of results to retrieve
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The matching labs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lab'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /labs/{id}:
+    get:
+      summary: Get a Lab
+      operationId: labRetrieve
+      tags:
+        - Lab
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Lab to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Lab matching the ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lab'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Order Request
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /order-requests:
+    get:
+      summary: List and filter order requests
+      operationId: orderRequestList
+      tags:
+        - Order Request
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The page of results to retrieve
+        - name: lab_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The Lab ID to filter on
+      responses:
+        '200':
+          description: The matching order requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRequests'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      summary: Create an Order Request
+      operationId: orderRequestCreate
+      tags:
+        - Order Request
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: The created Order Request
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/OrderRequest'
+                  - type: object
+                    properties:
+                      requested_by:
+                        nullable: true
+                        oneOf:
+                          - $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /order-requests/{id}:
+    get:
+      summary: Get an Order Request
+      operationId: orderRequestRetrieve
+      tags:
+        - Order Request
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Order Request to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Order Request matching the ID
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/OrderRequest'
+                  - type: object
+                    properties:
+                      requested_by:
+                        nullable: true
+                        oneOf:
+                          - $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Order Request
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Update an Order Request
+      operationId: orderRequestUpdate
+      tags:
+        - Order Request
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Order Request to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderRequest'
+      responses:
+        '200':
+          description: The Order Request that was updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/OrderRequest'
+                  - type: object
+                    properties:
+                      requested_by:
+                        nullable: true
+                        oneOf:
+                          - $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Order Request
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /types:
+    get:
+      summary: List and filter types
+      operationId: typeList
+      tags:
+        - Type
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: lab_id
+          in: query
+          required: false
+          description: The Lab ID to filter on
+          schema:
+            type: string
+            format: uuid
+        - name: name
+          in: query
+          required: false
+          description: The Type Name to filter on
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: The page of results to retrieve
+      responses:
+        '200':
+          description: The matching types
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Types'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /user:
+    get:
+      summary: Current user
+      operationId: me
+      tags:
+        - User
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching user
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /webhooks:
+    get:
+      summary: List and filter webhooks
+      operationId: webhookList
+      tags:
+        - Webhook
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: organization_id
+          in: query
+          required: false
+          description: The Organization ID to filter on
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: The page of results to retrieve
+      responses:
+        '200':
+          description: The matching webhooks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhooks'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      summary: Create a Webhook
+      operationId: webhookCreate
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      tags:
+        - Webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhook'
+      responses:
+        '201':
+          description: The created Webhook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /webhooks/{id}:
+    get:
+      summary: Get a Webhook
+      operationId: webhookRetrieve
+      tags:
+        - Webhook
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Webhook to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The Webhook matching the ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Webhook
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Update a Webhook
+      operationId: webhookUpdate
+      security:
+        - AccessToken: []
+        - OAuth2: []
+      tags:
+        - Webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the Webhook to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhook'
+      responses:
+        '200':
+          description: The Webhook that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No matching Webhook
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    Health:
+      type: object
+      properties: {}
+    InventoryItems:
+      type: array
+      items:
+        $ref: '#/components/schemas/InventoryItem'
+    OrderRequests:
+      type: array
+      items:
+        $ref: '#/components/schemas/OrderRequestWithType'
+    OrderRequestWithType:
+      allOf:
+        - $ref: '#/components/schemas/OrderRequest'
+        - type: object
+          required:
+            - type
+          properties:
+            type:
+              $ref: '#/components/schemas/Type'
+            requested_by:
+              nullable: true
+              oneOf:
+                - $ref: '#/components/schemas/User'
+    CreateOrderRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - lab_id
+        - type_id
+        - name
+        - vendor_name
+        - catalog_number
+        - price
+        - quantity
+      properties:
+        lab_id:
+          type: string
+          format: uuid
+        type_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        vendor_product_id:
+          type: string
+          format: uuid
+        vendor_name:
+          type: string
+        catalog_number:
+          type: string
+        price:
+          $ref: '#/components/schemas/Money'
+        quantity:
+          type: integer
+        required_before:
+          type: string
+          format: date
+        notes:
+          type: string
+    UpdateOrderRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+            - CREATED
+            - CANCELLED
+            - APPROVED
+            - ORDERED
+            - BACKORDERED
+            - RECEIVED
+    Types:
+      type: array
+      items:
+        $ref: '#/components/schemas/TypeWithLab'
+    TypeWithLab:
+      allOf:
+        - $ref: '#/components/schemas/Type'
+        - type: object
+          required:
+            - lab
+          properties:
+            lab:
+              $ref: '#/components/schemas/Lab'
+    Webhooks:
+      type: array
+      items:
+        $ref: '#/components/schemas/Webhook'
+    CreateWebhook:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+            - lab_id
+            - url
+          properties:
+            lab_id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            url:
+              type: string
+            event_types:
+              type: array
+              items:
+                type: string
+            is_enabled:
+              type: boolean
+            is_verified:
+              type: boolean
+            is_signed:
+              type: boolean
+        - type: object
+          additionalProperties: false
+          required:
+            - organization_id
+            - url
+          properties:
+            organization_id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            url:
+              type: string
+            event_types:
+              type: array
+              items:
+                type: string
+            is_enabled:
+              type: boolean
+            is_verified:
+              type: boolean
+            is_signed:
+              type: boolean
+    UpdateWebhook:
+      type: object
+      additionalProperties: false
+      properties:
+        is_enabled:
+          type: boolean
+    Lab:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        uses_instances:
+          type: boolean
+          description: >
+            Temporary field during the inventory item instances rollout. When
+            true, the lab has been migrated to instances and quantity updates
+            must use the instance endpoint. When false, the lab uses the legacy
+            item-level quantity endpoint.
+        organization:
+          $ref: '#/components/schemas/Organization'
+    Organization:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    User:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+    OrderRequest:
+      type: object
+      required:
+        - id
+        - app_url
+        - status
+        - requested_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        app_url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum:
+            - CREATED
+            - CANCELLED
+            - APPROVED
+            - ORDERED
+            - BACKORDERED
+            - RECEIVED
+        vendor_name:
+          type: string
+          nullable: true
+        catalog_number:
+          type: string
+          nullable: true
+        quantity:
+          type: string
+          nullable: true
+        unit_size:
+          type: string
+          nullable: true
+        unit_price:
+          type: string
+          nullable: true
+        total_price:
+          $ref: '#/components/schemas/Money'
+        requested_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        requested_by:
+          $ref: '#/components/schemas/User'
+        created_by:
+          $ref: '#/components/schemas/User'
+        notes:
+          type: string
+          nullable: true
+        item_name:
+          type: string
+          nullable: true
+        invoice_number:
+          type: string
+          nullable: true
+        requisition_number:
+          type: string
+          nullable: true
+        confirmation_number:
+          type: string
+          nullable: true
+        tracking_number:
+          type: string
+          nullable: true
+        purchase_order_number:
+          type: string
+          nullable: true
+        shipping_and_handling:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+        lab:
+          $ref: '#/components/schemas/Lab'
+        type:
+          $ref: '#/components/schemas/Type'
+        spend_tracking_code:
+          $ref: '#/components/schemas/SpendTrackingCode'
+        backordered_expected_at:
+          type: string
+          format: date
+          nullable: true
+        is_urgent:
+          type: boolean
+          nullable: true
+    OrderRequestEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          $ref: '#/components/schemas/User'
+    InventoryItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+        vendor:
+          type: string
+          nullable: true
+        catalog_number:
+          type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        unit_size:
+          type: string
+          nullable: true
+        quantity:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        technical_details:
+          type: string
+          nullable: true
+        expiration_date:
+          type: string
+          nullable: true
+          format: date
+          deprecated: true
+        auto_reminder:
+          type: string
+          nullable: true
+        lot_number:
+          type: string
+          nullable: true
+          deprecated: true
+        cas_number:
+          type: string
+          nullable: true
+        vendor_product_id:
+          type: string
+          format: uuid
+          nullable: true
+        lab:
+          $ref: '#/components/schemas/Lab'
+        type:
+          $ref: '#/components/schemas/Type'
+        location:
+          nullable: true
+          deprecated: true
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+        sublocation:
+          nullable: true
+          deprecated: true
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+        added_by:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/User'
+        updated_by:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/User'
+        app_url:
+          type: string
+          format: uri
+          nullable: true
+        serial_number:
+          type: string
+          nullable: true
+        instances:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventorySubitem'
+    InventorySubitem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        expiration_date:
+          type: string
+          nullable: true
+          format: date
+        lot_number:
+          type: string
+          nullable: true
+        location:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Location'
+    Location:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        pathNames:
+          type: array
+          nullable: true
+          items:
+            type: string
+    Type:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    SpendTrackingCode:
+      nullable: true
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    Webhook:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - url
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+        event_types:
+          type: array
+          items:
+            type: string
+        is_enabled:
+          type: boolean
+        is_verified:
+          type: boolean
+        is_signed:
+          type: boolean
+        signing_key:
+          type: string
+          nullable: true
+    SalesOrder:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - app_url
+        - key
+      properties:
+        id:
+          type: string
+          format: uuid
+        app_url:
+          type: string
+        key:
+          type: string
+        payment_method:
+          type: string
+          enum:
+            - CREDIT_CARD
+            - PURCHASE_ORDER
+        purchase_order_number:
+          type: string
+        is_test:
+          type: boolean
+        shipping:
+          $ref: '#/components/schemas/Money'
+        handling:
+          $ref: '#/components/schemas/Money'
+        tax:
+          $ref: '#/components/schemas/Money'
+        total:
+          $ref: '#/components/schemas/Money'
+        sales_order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesOrderItem'
+        lab:
+          $ref: '#/components/schemas/Lab'
+    SalesOrderItem:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - app_url
+        - status
+        - sell_price
+        - quantity
+        - product
+      properties:
+        id:
+          type: string
+          format: uuid
+        app_url:
+          type: string
+        status:
+          type: string
+          enum:
+            - PLACED
+            - BACKORDERED
+            - INDEFINITELY_BACKORDERED
+            - SHIPPED
+            - CANCELLED
+        estimated_shipment_date:
+          type: string
+          format: date
+          nullable: true
+        estimated_delivery_date:
+          type: string
+          format: date
+          nullable: true
+        sell_price:
+          $ref: '#/components/schemas/Money'
+        quantity:
+          type: number
+        product:
+          $ref: '#/components/schemas/VendorProduct'
+        shipments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shipment'
+    VendorProduct:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - item_name
+        - catalog_number
+      properties:
+        id:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+        catalog_number:
+          type: string
+        unit:
+          $ref: '#/components/schemas/Unit'
+    Shipment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        carrier:
+          type: string
+        tracking:
+          type: string
+        quantity:
+          type: number
+        shipped_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+    Unit:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        symbol:
+          type: string
+        amount:
+          type: number
+          format: float
+    Money:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          format: integer
+        currency:
+          type: string
+  responses:
+    Unauthorized:
+      description: Request unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: >-
+        Invalid request (e.g. malformed body, non-numeric quantity, negative
+        quantity)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Internal error
+  securitySchemes:
+    AccessToken:
+      type: apiKey
+      in: header
+      name: Access-Token
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth0.quartzy.com/authorize
+          tokenUrl: https://auth0.quartzy.com/oauth/token
+          scopes: {}

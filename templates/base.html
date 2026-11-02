@@ -1,0 +1,34 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{{ htmx_config }}'>
+  <title>{% block title %}LabStock{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'vendor/htmx-2.0.11.min.js' %}" nonce="{{ csp_nonce }}"
+          integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg"></script>
+  {% block head %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="topbar">
+    <a class="brand" href="{% url 'core:home' %}">LabStock</a>
+    {% if current_lab %}<span class="lab">{{ current_lab.name }}</span>{% endif %}
+    <nav>
+      {% if user.is_authenticated %}
+        <span class="who">{{ user.get_short_name }}</span>
+        <form method="post" action="{% url 'account_logout' %}" class="inline">
+          {% csrf_token %}<button type="submit" class="link">Sign out</button>
+        </form>
+      {% endif %}
+    </nav>
+  </header>
+  {% if quartzy_sync_behind %}
+    <p class="sync-banner" role="status">Quartzy sync is behind ({% if quartzy_sync_behind.last_update %}last update {{ quartzy_sync_behind.last_update|timesince }} ago{% else %}no update yet{% endif %}). Duplicate checks may be late.</p>
+  {% endif %}
+  {% if messages %}
+    <ul class="messages">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
+  {% endif %}
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  {% if repeat %}
+    <h1>Already recorded</h1>
+    <p>Your answer was saved earlier. You can change it in LabStock after signing in.</p>
+  {% else %}
+    <h1>Thanks — recorded</h1>
+    <p>{{ action.label }}.</p>
+  {% endif %}
+</section>
+{% endblock %}

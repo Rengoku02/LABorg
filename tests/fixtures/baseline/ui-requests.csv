@@ -1,0 +1,54 @@
+Item Name,Vendor,Catalog #,Requested By,Lab,Price,Date Requested,Date Approved,Date Ordered,Date Received,Date Cancelled,Link
+GAPDH (14C10) Rabbit mAb,CST,2118S,Priya Patel,Smith Lab,289.00,03/02/2026,,03/03/2026,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=d09b21c0-2aca-5fdd-af1b-c8801a0a851a
+GAPDH (14C10) Rabbit mAb #2118,CST,2118S,Raj Kumar,Smith Lab,289.00,03/20/2026,,03/21/2026,03/29/2026,,
+"EcoRI - 10,000 units",NEB,R0101S,Priya Patel,Smith Lab,79.00,01/05/2026,,01/06/2026,01/19/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=746dbaa9-a95b-59b3-a1c4-8f1fd61c0bf8
+EcoRI,New England Biolabs,R0101S,Sam Ortiz,Smith Lab,79.00,01/15/2026,,01/16/2026,01/24/2026,,
+Anti-GAPDH antibody [6C5],Abcam,ab8245,Lee Chen,Smith Lab Teaching,395.00,11/03/2025,,11/04/2025,11/12/2025,,https://app.quartzy.com/groups/11017ce3-c126-5051-9a9c-75d40b512bb5/requests?id=0f81f1dd-a76a-5b80-bb97-9331332c62d7
+GAPDH antibody 6C5,abcam,ab8245,Dana Fox,Smith Lab,395.00,11/10/2025,,11/11/2025,,,
+Anti-GAPDH [6C5],Abcam,ab8245,Sam Ortiz,Smith Lab,395.00,11/20/2025,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=3d1b0fa4-0581-5e5a-baac-c795e71c3b4d
+"DMEM, high glucose",Gibco,11965-092,Sam Ortiz,Smith Lab,34.50,02/02/2026,,,,,
+DMEM high glucose 500 mL,Thermo Fisher,11965092,Raj Kumar,Smith Lab,34.50,02/10/2026,,02/11/2026,02/19/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=cba647c7-1c28-5be8-bbbb-be3e6929a17c
+"Penicillin-Streptomycin, 100 mL",Gibco,15140-122,Priya Patel,Smith Lab,28.00,04/01/2026,,04/02/2026,04/10/2026,,
+"Penicillin-Streptomycin, 20 mL",Thermo Fisher,15140148,Lee Chen,Smith Lab,61.00,04/15/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=058668e4-7725-5970-9fcf-e7d69c4a7c7a
+ANTI-FLAG M2 Affinity Gel,Sigma,A2220-5ML,Dana Fox,Smith Lab,612.00,12/01/2025,,12/02/2025,12/12/2025,,
+Anti-FLAG M2 affinity gel,Sigma-Aldrich,A2220-5ML,Priya Patel,Smith Lab,612.00,02/20/2026,,02/21/2026,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=7bff884b-a7b4-5ff2-86ee-1591f41076ee
+"ANTI-FLAG M2 Affinity Gel, 10 mL",Sigma,A2220-10ML,Lee Chen,Smith Lab,,03/10/2026,,,,,
+"Trypsin-EDTA (0.25%), phenol red",Gibco,25200-056,Sam Ortiz,Smith Lab,22.00,05/04/2026,,,,,
+Gibco Trypsin-EDTA 0.25%,Fisher Scientific,25-200-056,Dana Fox,Smith Lab,23.10,05/20/2026,,05/21/2026,05/29/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=d487d105-d627-5688-8b7f-b1098dea88ae
+Phospho-p44/42 MAPK (Erk1/2) Antibody,CST,9101S,Raj Kumar,Smith Lab,330.00,06/02/2026,,06/03/2026,06/11/2026,,
+MEK-1 antibody (H-8),Santa Cruz,9101S,Lee Chen,Smith Lab,290.00,06/09/2026,,06/10/2026,06/18/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=99832752-4382-5691-99e5-fb9730a1a9ce
+"iScript cDNA Synthesis Kit, 100 rxn",Bio-Rad,1708891,Alex Kim,Smith Lab,410.00,09/10/2025,,09/11/2025,09/19/2025,,
+"Serological pipettes 10 mL, case",Sarstedt,1708891,Sam Ortiz,Smith Lab,96.00,09/24/2025,,09/25/2025,10/03/2025,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=0dd8445a-da3d-5353-ab6a-f0eaa2c2d7af
+PrimeScript RT Master Mix,Takara,RR036A,Lee Chen,Smith Lab,255.00,06/01/2026,,06/02/2026,06/05/2026,,
+PrimeScript RT Master Mix (Perfect Real Time),Takara Bio,RR036A,Raj Kumar,Smith Lab,255.00,06/12/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=fec4bdae-2350-5f61-bf04-8bef43eb2676
+beta-Actin (13E5) Rabbit mAb,CST,4970S,Priya Patel,Smith Lab,325.00,07/01/2026,,,,07/03/2026,
+beta-Actin (13E5) Rabbit mAb,CST,4970S,Raj Kumar,Smith Lab,325.00,07/05/2026,,07/06/2026,07/14/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=7afaedd8-8fbd-534c-8d7e-10bdd52df118
+Goat Anti-Rabbit IgG H&L (Alexa Fluor 488),Abcam,ab150077,Sam Ortiz,Smith Lab,410.00,07/10/2026,,07/11/2026,07/19/2026,,
+Goat anti-rabbit AF488,Abcam,ab150077,Dana Fox,Smith Lab,410.00,07/12/2026,,,,07/14/2026,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=98a9e961-75d7-5ebe-8453-b8df43489847
+Nuclease-Free Water (not DEPC-Treated),Invitrogen,AM9937,Priya Patel,Smith Lab,57.00,01/10/2026,,01/11/2026,01/19/2026,,
+Nuclease-free water,Thermo Fisher,AM9937,Priya Patel,Smith Lab,57.00,02/15/2026,,02/16/2026,02/24/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=6978f96f-57d5-592f-986f-4aa463f45a72
+Nuclease free water,Ambion,AM9937,Priya Patel,Smith Lab,57.00,03/25/2026,,,,,
+CellTiter-Glo Luminescent Cell Viability Assay,Promega,G7570,Sam Ortiz,Smith Lab,486.00,06/02/2025,,06/03/2025,06/11/2025,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=6be0ce59-3753-5f45-a8bd-9691b83c7d0f
+CellTiter-Glo,Promega,G7570,Lee Chen,Smith Lab,486.00,12/01/2025,,12/02/2025,12/10/2025,,
+Kimwipes,VWR,N/A,Raj Kumar,Smith Lab,45.00,03/03/2026,,03/04/2026,03/12/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=4094937b-1fe7-508a-8927-4f3b3a85b1f6
+Kimwipes,VWR,N/A,Dana Fox,Smith Lab,45.00,03/04/2026,,03/05/2026,03/13/2026,,
+RNeasy Mini Kit (50),QIAGEN,TBD,Lee Chen,Smith Lab,590.00,08/11/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=5da93b67-a565-5bf5-996c-ffa24f76603f
+Falcon 50 mL conical tubes,Corning,3.5207E+05,Alex Kim,Smith Lab,152.00,08/20/2026,,08/21/2026,08/29/2026,,
+Sanger sequencing (96 samples),Genewiz,,Sam Ortiz,Smith Lab,240.00,09/01/2026,,09/02/2026,09/10/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=9127fcc7-3da0-5ac3-a3d5-275544b2c209
+GAPDH qPCR primer F,IDT,DNA-OLIGO-25NM,Priya Patel,Smith Lab,6.50,08/03/2026,,08/04/2026,08/12/2026,,
+GAPDH qPCR primer R,IDT,DNA-OLIGO-25NM,Raj Kumar,Smith Lab,6.50,08/05/2026,,08/06/2026,08/14/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=79a54c9c-345a-528e-aca2-e6a2475a8e07
+KRAS sgRNA top strand,IDT,DNA-OLIGO-25NM,Lee Chen,Smith Lab,7.20,08/19/2026,,08/20/2026,08/28/2026,,
+ACTB qPCR primer F,IDT,DNA-OLIGO-25NM,Sam Ortiz,Smith Lab,6.50,09/02/2026,,09/03/2026,09/11/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=6b1e770d-83b5-5247-9914-d8543f59aba1
+TP53 sequencing primer,IDT,DNA-OLIGO-25NM,Priya Patel,Smith Lab,6.80,09/30/2026,,10/01/2026,,,
+Acme lysis buffer,Acme Reagents,AC-1001,Raj Kumar,Smith Lab,120.00,09/08/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=4d3ac1f1-f857-52db-b586-770e98c819d2
+Lysis buffer (Acme),Acme Reagents Inc.,AC1001,Sam Ortiz,Smith Lab,120.00,09/15/2026,,,,,
+Acme lysis buffer,Acme Reagents,AC-1001,,Smith Lab,120.00,09/20/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=551bc5d2-a9d5-54ae-8dd2-d78c5ac5f63f
+GAPDH (14C10) Rabbit mAb,N/A,2118S,Lee Chen,Smith Lab,289.00,07/06/2026,,07/07/2026,07/15/2026,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=340204f1-b6ae-5e43-9df0-1a6a16bfddc8
+GAPDH (14C10) Rabbit mAb,,2118S,Dana Fox,Smith Lab,289.00,07/13/2026,,07/14/2026,,,
+GAPDH (14C10) Rabbit mAb,Unknown,2118S,Alex Kim,Smith Lab,289.00,07/17/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=ab171e34-ceff-54a3-9181-521b45640b56
+"Fetal Bovine Serum, qualified - for Priya's organoids",N/A,10270-106,Priya Patel,Smith Lab,560.00,05/11/2026,,05/12/2026,05/20/2026,,
+"FBS, qualified, 500 mL",TBD,10270106,Dana Fox,Smith Lab,560.00,05/25/2026,,,,,https://app.quartzy.com/groups/e44155cc-de69-56a0-a371-de796026e823/requests?id=e9bda21a-8218-515b-a9b3-80c06599d0e4
+"Pasteur pipettes, 9 in, 1000/pk",Amazon,https://www.amazon.com/dp/B07Q3XGZ8M/ref=sr_1_3?crid=2X9QZ1&keywords=pasteur+pipettes+9+inch,Sam Ortiz,Smith Lab,38.00,08/26/2026,,08/27/2026,09/04/2026,,
+Kimwipes,VWR,N/A,Alex Kim,Smith Lab,45.00,03/04/2026,,03/05/2026,03/13/2026,,
+Kimwipes,VWR,N/A,Alex Kim,Smith Lab,45.00,03/04/2026,,03/05/2026,03/13/2026,,
+Centrifuge rotor service,Beckman Coulter,SVC-ROTOR,Pat Owner,Smith Lab,350.00,02/01/2024,,,02/15/2024,,

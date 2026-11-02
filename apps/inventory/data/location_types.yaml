@@ -1,0 +1,76 @@
+# Location types (docs/design/mvp-a.md §1). `manage.py seed_inventory` loads this file; after
+# the first seed the wet-lab co-owner owns these values in the admin: a re-seed only changes a
+# field that still holds the value the seed last wrote.
+#
+# - structural: holds other locations (rooms, freezers, shelves, racks). Boxes and bags are
+#   not structural: they hold stock, and only they can be registered as someone's box.
+# - position_scheme: where an item sits inside it. grid = rows x cols, labelled A1, A2 … by
+#   row (rows A-Z); linear = numbered 1, 2, 3 … with an optional prefix; none = no positions.
+#   Positions that don't fit the scheme are kept as free text, so old sheets still import.
+# - sort_order: order in pick-lists.
+#
+# Choices the co-owner should confirm are marked "Confirm:".
+
+location_types:
+  - key: room
+    label: Room
+    structural: true
+
+  - key: freezer
+    label: Freezer
+    structural: true
+
+  - key: fridge
+    label: Fridge
+    structural: true
+
+  - key: ln2_dewar
+    label: LN2 dewar
+    structural: true
+
+  - key: cabinet
+    label: Cabinet
+    structural: true
+
+  - key: bench
+    label: Bench
+    structural: true
+
+  - key: shelf
+    label: Shelf
+    structural: true
+
+  # Freezer racks hold boxes, which are locations themselves, so a rack needs no positions.
+  - key: rack
+    label: Rack
+    structural: true
+
+  - key: drawer
+    label: Drawer
+    structural: true
+
+  # Confirm: 81-place (9 x 9) cryoboxes are the common freezer box; 100-place ones get their
+  # own type below.
+  - key: box
+    label: Box (9 x 9)
+    structural: false
+    position_scheme: grid
+    rows: 9
+    cols: 9
+
+  - key: box_10x10
+    label: Box (10 x 10)
+    structural: false
+    position_scheme: grid
+    rows: 10
+    cols: 10
+
+  - key: bag
+    label: Bag
+    structural: false
+
+  # A person's "place later" container, one per temperature (services.unsorted_location).
+  # Not for the CSV import: unsorted containers are created on demand.
+  - key: unsorted
+    label: Unsorted (place later)
+    structural: false

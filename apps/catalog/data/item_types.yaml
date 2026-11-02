@@ -1,0 +1,224 @@
+# Item types (plan §2 "Item types"). `manage.py seed_catalog` loads this file. After the first
+# seed the wet-lab co-owner owns these values in the admin: a re-seed only changes a field
+# that still holds the value the seed last wrote.
+#
+# - tier: rollout order, 1 (tracked first) to 5 (last or never).
+# - durable: lasts long enough that a purchase from months ago is probably still in a box.
+# - lookback_months: how far back the guard's "bought before" looks; 0 = open requests only.
+# - in_scope: the duplicate guard checks requests of this type.
+# - identity_rule: what makes two products the same. Every rule except "none" matches on the
+#   vendor catalog # for now (CAS, RRID, Cellosaurus and sequence matching come in v1).
+#   "none": the catalog # names nothing (custom oligos, services), so requests are never grouped.
+# - tracking_mode: container (one stock item per tube/box), count, or status_only.
+# - quartzy_type_keywords: matched at the start of a word in a Quartzy Type name, ignoring
+#   case and punctuation; the longest matching keyword wins ("Chemical Probe" beats "Chemical").
+# - product_schema / instance_schema: typed fields arrive in v1; empty for now.
+#
+# Choices the co-owner should confirm are marked "Confirm:".
+
+item_types:
+  # Tier 1: durable, pricey, kept in personal boxes; the classic duplicate purchases.
+  - key: antibody
+    label: Antibody (primary or secondary)
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog  # RRID in v1
+    tracking_mode: container
+    quartzy_type_keywords: [antibod, immunoglobulin, igg, isotype control, primary ab,
+                            secondary ab]
+
+  - key: kit
+    label: Kit
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [kit, assay, elisa, library prep]
+
+  - key: enzyme
+    label: Enzyme
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [enzyme, polymerase, restriction, ligase, nuclease, transcriptase,
+                            protease, master mix, mastermix]
+
+  - key: small_molecule
+    label: Small molecule / inhibitor
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    # Matched on the vendor catalog #; the CAS number is kept as an attribute, because the
+    # same compound from two vendors can differ in salt form, purity or formulation.
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [small molecule, inhibitor, chemical probe, bioactive, compound,
+                            drug, agonist, antagonist, antibiotic]
+
+  - key: recombinant_protein
+    label: Cytokine / growth factor / recombinant protein
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [recombinant, cytokine, chemokine, growth factor, interleukin,
+                            protein, peptide]
+
+  - key: sirna_sgrna
+    label: siRNA / sgRNA
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    # Pre-designed reagents have per-target catalog numbers. Custom-sequence SKUs (one number
+    # for every guide) belong on the generic-key stop-list. Confirm: after the Phase 0 baseline.
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [sirna, sgrna, shrna, grna, crrna, guide rna, rnai, crispr]
+
+  - key: serum
+    label: Serum / FBS lot
+    tier: 1
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [serum, sera, fbs, fcs, fetal bovine, fetal calf]
+
+  # Tier 2: cell lines (the LN2 log gives early coverage); shared lab-made stock is
+  # registered early too, because search shows shared stock first.
+  - key: cell_line
+    label: Cell line
+    tier: 2
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog  # Cellosaurus accession (CVCL_) in v1
+    tracking_mode: container
+    quartzy_type_keywords: [cell line, primary cell, ipsc, hybridoma, cell bank]
+
+  - key: lab_made_shared
+    label: Lab-made / shared stock
+    tier: 2
+    durable: true
+    # Not bought, so there is nothing for the guard to compare.
+    lookback_months: 0
+    in_scope: false
+    identity_rule: none
+    tracking_mode: container
+    quartzy_type_keywords: [lab made, homemade, home made, in house, shared stock]
+
+  # Tier 3: oligos. Every custom oligo shares a few catalog numbers, so the catalog # can't
+  # tell them apart; sequence matching arrives in v1. Out of scope until then, so nobody gets
+  # a "no match, clear to order" receipt for a request the guard couldn't check.
+  - key: oligo
+    label: Oligo / primer
+    tier: 3
+    durable: true
+    lookback_months: 12
+    in_scope: false
+    identity_rule: none
+    tracking_mode: container
+    quartzy_type_keywords: [oligo, primer, gblock, gene fragment, ultramer]
+
+  # Tier 4: plasmids and strains.
+  - key: plasmid
+    label: Plasmid
+    tier: 4
+    durable: true
+    lookback_months: 24
+    in_scope: true
+    identity_rule: addgene  # Addgene's catalog # is the Addgene ID
+    tracking_mode: container
+    quartzy_type_keywords: [plasmid, vector, cdna clone, orf clone, construct]
+
+  - key: strain
+    label: Strain (bacteria, yeast, flies, mice)
+    tier: 4
+    durable: true
+    # Confirm: mouse cohorts are re-ordered on purpose; recurring-order suppression covers it.
+    lookback_months: 24
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: container
+    quartzy_type_keywords: [strain, bacteri, yeast, e coli, glycerol stock, competent, mouse,
+                            mice, animal, drosophila]
+
+  # Tier 5 (last): bulk and hazardous chemicals, with EHS. Bottles last for years, but they
+  # are cheap and re-bought often, so the guard leaves them out at first. Confirm: the PI's
+  # scope decision.
+  - key: chemical
+    label: Chemical (bulk / hazardous)
+    tier: 5
+    durable: true
+    lookback_months: 12
+    in_scope: false
+    identity_rule: cas  # one CAS from any vendor is usually interchangeable for bulk use
+    tracking_mode: container
+    quartzy_type_keywords: [chemical, solvent, hazardous, flammable, corrosive]
+
+  # Not durable, or out of scope.
+  - key: media_buffer
+    label: Media / buffer
+    tier: 5
+    durable: false
+    lookback_months: 3
+    in_scope: false
+    identity_rule: catalog
+    tracking_mode: count
+    quartzy_type_keywords: [media, medium, buffer, solution, supplement]
+
+  - key: consumable
+    label: Consumable / plasticware
+    tier: 5
+    durable: false
+    # Only open requests count: two people ordering the same case of tips in the same week.
+    lookback_months: 0
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: count
+    quartzy_type_keywords: [general supply, supplies, consumable, plastic, glove, tip, tube,
+                            plate, flask, dish, labware, glassware, disposable, filter]
+
+  - key: service_fee
+    label: Service / fee
+    tier: 5
+    durable: false
+    lookback_months: 0
+    in_scope: false
+    identity_rule: none
+    tracking_mode: status_only
+    quartzy_type_keywords: [service, fee, shipping, freight, sequencing, synthesis, repair,
+                            maintenance, subscription, software, license, dry ice, hazmat]
+
+  - key: equipment
+    label: Equipment
+    tier: 5
+    durable: false  # out of scope for now: no claims, no stock tracking
+    lookback_months: 0
+    in_scope: false
+    identity_rule: catalog
+    tracking_mode: status_only
+    quartzy_type_keywords: [equipment, instrument, apparatus, device, hardware, electronics,
+                            furniture, computer]
+
+  - key: other
+    label: Other
+    tier: 5
+    durable: false
+    lookback_months: 0
+    in_scope: true
+    identity_rule: catalog
+    tracking_mode: count
+    quartzy_type_keywords: [other, misc, uncategori]

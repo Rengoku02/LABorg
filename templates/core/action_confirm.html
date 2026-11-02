@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% comment %}
+  Plain form on purpose: no htmx attributes and no scripts, so a mail scanner or link
+  previewer that fetches this page can never trigger the action (plan §12).
+{% endcomment %}
+{% block content %}
+<section class="card">
+  <h1>{{ action.label }}</h1>
+  <p>Recording as <strong>{{ notification.recipient|default:notification.recipient_email }}</strong>.
+     Not you? Close this page.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if action.reasons %}
+      <label for="reason">Reason</label>
+      <select id="reason" name="reason" required>
+        <option value="">Choose…</option>
+        {% for value, label in action.reasons %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+    <button type="submit" class="primary">Confirm</button>
+  </form>
+</section>
+{% endblock %}

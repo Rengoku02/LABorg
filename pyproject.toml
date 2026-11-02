@@ -1,0 +1,72 @@
+[project]
+name = "labstock"
+version = "0.1.0"
+description = "Lab-wide inventory and duplicate-order guard that works alongside Quartzy"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "django>=6.1,<6.2",
+    "django-allauth[mfa]>=65.21",
+    "django-anymail>=15.1",
+    "django-q2>=1.11",
+    "django-simple-history>=3.12",
+    "django-treebeard>=7.0.3",
+    "dj-database-url>=2.3",
+    "gunicorn>=23.0",
+    "httpx>=0.28",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.10",
+    "pyyaml>=6.0",
+    "rapidfuzz>=3.14",
+    "tenacity>=9.0",
+    "whitenoise>=6.9",
+]
+
+[dependency-groups]
+dev = [
+    "factory-boy>=3.3",
+    "openapi-core>=0.19",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-django>=4.10",
+    "ruff>=0.9",
+    "time-machine>=2.16",
+]
+# Phase 0 baseline notebook; not needed by the web app.
+analysis = [
+    "ipykernel>=6.29",
+    "jupyterlab>=4.3",
+    "matplotlib>=3.11.2",
+    "pandas>=2.2",
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "labstock.settings.test"
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = [
+    "error::DeprecationWarning:apps.*",
+    "error::DeprecationWarning:labstock.*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "RUF"]
+ignore = [
+    "S101",   # assert is fine in tests
+    "RUF012", # Django Meta/class attributes
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]
+"scripts/**" = ["T201"]
+"labstock/settings/test.py" = ["S105"]

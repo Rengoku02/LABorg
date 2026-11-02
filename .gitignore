@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local config & secrets
+.env
+.env.*
+!.env.example
+
+# Quartzy exports and analysis output (contain real names, prices, emails)
+data/*
+!data/.gitkeep
+
+# Notebooks: keep code, strip outputs before committing
+.ipynb_checkpoints/
+
+# Django
+/media/
+/staticfiles/
+*.sqlite3
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

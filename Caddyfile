@@ -1,0 +1,20 @@
+# TLS terminates here. If the host can't accept inbound 80/443 from the internet (common on
+# university VMs), Let's Encrypt's HTTP challenge fails: build Caddy with your DNS provider's
+# plugin and use the DNS-01 challenge, or use a university-issued certificate (plan §6).
+{$LABSTOCK_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy web:8000
+
+	log {
+		output stdout
+		# Signed one-action email links carry a token in the path (/a/<token>/<action>/);
+		# never let it reach a log file. Cookies are dropped for the same reason.
+		format filter {
+			wrap json
+			request>uri regexp "/a/[^/?#]+" "/a/[redacted]"
+			request>headers>Cookie delete
+			request>headers>Referer delete
+		}
+	}
+}

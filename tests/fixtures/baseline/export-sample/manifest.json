@@ -1,0 +1,30 @@
+{
+  "synthetic": "tests/fixtures/baseline/build_sample.py",
+  "started_at": "2026-10-20T08:00:00Z",
+  "finished_at": "2026-10-20T08:03:00Z",
+  "base_url": "https://api.quartzy.com",
+  "complete": true,
+  "lab_ids": [
+    "e44155cc-de69-56a0-a371-de796026e823",
+    "11017ce3-c126-5051-9a9c-75d40b512bb5"
+  ],
+  "lab_ids_source": "QUARTZY_LAB_IDS",
+  "counts": {
+    "labs": 2,
+    "types": 9,
+    "order_requests": 52,
+    "inventory_items": 0
+  },
+  "probe_facts": {
+    "page_base": 1,
+    "page_base_source": "probe report",
+    "money_unit": "minor",
+    "money_unit_source": "probe report",
+    "new_items_at": "first_page",
+    "money_unit_counts": {
+      "minor": 49,
+      "major": 0,
+      "unknown": 3
+    }
+  }
+}

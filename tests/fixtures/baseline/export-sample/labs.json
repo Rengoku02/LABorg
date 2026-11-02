@@ -1,0 +1,20 @@
+[
+  {
+    "id": "e44155cc-de69-56a0-a371-de796026e823",
+    "name": "Smith Lab",
+    "uses_instances": true,
+    "organization": {
+      "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+      "name": "Example University"
+    }
+  },
+  {
+    "id": "11017ce3-c126-5051-9a9c-75d40b512bb5",
+    "name": "Smith Lab Teaching",
+    "uses_instances": true,
+    "organization": {
+      "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+      "name": "Example University"
+    }
+  }
+]

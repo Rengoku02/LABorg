@@ -1,0 +1,3 @@
+{% extends "emails/base.txt" %}{% block body %}{{ title }}
+
+{{ message }}{% endblock %}

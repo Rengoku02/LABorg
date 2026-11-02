@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% comment %}
+  Staff-only sync health panel. No inline scripts or styles (strict CSP).
+{% endcomment %}
+{% block title %}Quartzy sync health · LabStock{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Quartzy sync health</h1>
+  <p>Quartzy access: <strong>{% if token_ok %}token OK{% else %}token failed{% endif %}</strong></p>
+  <p>Labs last listed:
+    {% if labs_run %}{{ labs_run.finished_at|timesince }} ago{% else %}never{% endif %}</p>
+</section>
+
+{% if inactive %}
+<section class="card">
+  <h2>Not mirrored</h2>
+  <p>The token sees these Quartzy labs, but LabStock doesn't sync them or show their rows:</p>
+  <ul>
+    {% for qlab in inactive %}<li>{{ qlab }} [{{ qlab.quartzy_id }}] → {{ qlab.lab }}</li>{% endfor %}
+  </ul>
+  <p>To mirror one, tick “Is active” on it in the admin (Quartzy labs), then run
+    <code>manage.py quartzy_backfill</code>. To delete what was mirrored from one,
+    run <code>manage.py quartzy_purge_lab &lt;its id&gt;</code>.</p>
+</section>
+{% endif %}
+
+{% for panel in panels %}
+<section class="card">
+  <h2>{{ panel.qlab }}</h2>
+  <p>Quartzy lab {{ panel.qlab.quartzy_id }} → {{ panel.qlab.lab }}.
+    Alerts {% if panel.qlab.alerts_armed_at %}armed since {{ panel.qlab.alerts_armed_at|date:"Y-m-d H:i" }}{% else %}not armed{% endif %}.</p>
+  {% if panel.stale %}
+  <ul class="messages">
+    <li class="warning">
+      {% if panel.last_head_ok %}The last successful head sync was {{ panel.last_head_ok|timesince }} ago,
+      more than {{ stale_minutes }} minutes.{% else %}No head sync has succeeded yet.{% endif %}
+      New requests are not reaching LabStock.
+    </li>
+  </ul>
+  {% endif %}
+
+  <table>
+    <thead>
+      <tr><th scope="col">Job</th><th scope="col">Last success</th><th scope="col">Last run</th><th scope="col">What the last run changed</th><th scope="col">Errors in last run</th></tr>
+    </thead>
+    <tbody>
+      {% for row in panel.kinds %}
+      <tr>
+        <th scope="row">{{ row.label }}</th>
+        <td>{% if row.last_ok %}{{ row.last_ok.finished_at|timesince }} ago{% else %}never{% endif %}</td>
+        <td>{% if row.last %}{{ row.last.get_status_display }}, {{ row.last.started_at|timesince }} ago{% else %}—{% endif %}</td>
+        <td>{% if not row.last %}—{% elif row.kind == "resolve" %}{{ row.last.changed }} of {{ row.last.seen }} requests resolved differently{% else %}{{ row.last.new }} new, {{ row.last.changed }} changed{% endif %}</td>
+        <td>{% if row.last %}{{ row.last.errors }}{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <dl>
+    <dt>Calls to Quartzy in the last hour</dt><dd>{{ panel.calls_last_hour }}</dd>
+    <dt>Open requests</dt><dd>{{ panel.open }} of {{ panel.requests }}</dd>
+    <dt>Requests the guard can't check (no usable catalog #)</dt>
+    <dd>{% if panel.uncheckable_share is None %}—{% else %}{{ panel.uncheckable_share }}% ({{ panel.uncheckable }}){% endif %}</dd>
+    <dt>People to match (unresolved Quartzy users)</dt><dd>{{ panel.unresolved_people }}</dd>
+    <dt>Provisional products to review</dt><dd>{{ panel.provisional_products }}</dd>
+  </dl>
+</section>
+{% empty %}
+<section class="card">
+  <p>No Quartzy lab is mirrored yet. Run <code>manage.py quartzy_backfill --lab &lt;slug&gt;</code>.</p>
+</section>
+{% endfor %}
+{% endblock %}

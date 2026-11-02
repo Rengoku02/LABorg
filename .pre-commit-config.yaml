@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --no-sync ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --no-sync ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: notebook-outputs
+        name: notebooks have no outputs (they can contain real lab data)
+        entry: >-
+          uv run --no-sync python -c "import json,sys;
+          bad=[p for p in sys.argv[1:] if any(c.get('outputs') or c.get('execution_count') for c in json.load(open(p))['cells'] if c.get('cell_type')=='code')];
+          print('\n'.join('outputs present: '+p for p in bad)); sys.exit(1 if bad else 0)"
+        language: system
+        files: \.ipynb$
+      - id: no-env-files
+        name: never commit .env or Quartzy exports
+        entry: bash -c 'for f in "$@"; do case "$f" in .env|.env.*|data/*) [[ "$f" == .env.example || "$f" == data/.gitkeep ]] || { echo "refusing to commit $f"; exit 1; };; esac; done' --
+        language: system

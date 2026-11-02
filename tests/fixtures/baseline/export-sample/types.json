@@ -1,0 +1,119 @@
+[
+  {
+    "id": "faa7ec76-13b7-5b89-9051-b0c59be2ddcc",
+    "name": "Antibodies",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "253a81a1-4f83-5ecb-a98e-9541dc810829",
+    "name": "Cell Culture",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "ff2425b5-710a-54c4-8a3c-48d0539ca27e",
+    "name": "Chemicals",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "20b0dee6-5b58-59ba-aa23-0c4785531bea",
+    "name": "Kits",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "93f579f6-f1ab-5e1b-8014-ab4d8e66bda8",
+    "name": "Molecular Biology",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "89a5b298-b261-5978-8148-d79419c6a246",
+    "name": "Oligos",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "18c053b7-f29f-52dc-ae0d-c46bffaf600d",
+    "name": "Lab Supplies",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "7000f675-01b3-5395-a927-85346f0ca1dc",
+    "name": "Services",
+    "lab": {
+      "id": "e44155cc-de69-56a0-a371-de796026e823",
+      "name": "Smith Lab",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  },
+  {
+    "id": "936668ca-e879-57f6-928c-021af06f5de5",
+    "name": "Antibodies",
+    "lab": {
+      "id": "11017ce3-c126-5051-9a9c-75d40b512bb5",
+      "name": "Smith Lab Teaching",
+      "uses_instances": true,
+      "organization": {
+        "id": "6c55a816-873a-5a89-b983-337344edc8f2",
+        "name": "Example University"
+      }
+    }
+  }
+]

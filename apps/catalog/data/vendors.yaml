@@ -1,0 +1,616 @@
+# Vendor families and the names people type for them into Quartzy.
+#
+# A family is the unit the duplicate guard compares catalog numbers within. Brands that
+# sell under the same catalog numbers share a family (Gibco, Invitrogen and Life
+# Technologies under Thermo Fisher; Sigma-Aldrich and Millipore under Merck KGaA).
+# Distributors sell other brands under their own SKUs, so each distributor is its own
+# family with distributor: true, and its own brands (Fisherbrand, J.T.Baker) sit with it.
+#
+# Aliases are compared after apps.catalog.normalization.normalize_vendor_name (casefold,
+# punctuation, "&" -> "and", a leading "the", trailing Inc./LLC/GmbH...) and again with
+# the spaces removed, so "Bio-Rad", "Bio Rad" and "BioRad" are one alias. Every vendor
+# name is also an alias of itself. Names that combine aliases of one family ("Thermo
+# Fisher (Gibco)", "Corning Costar") resolve without being listed; names that mix a
+# distributor and a brand ("Fisher Scientific (Thermo)") deliberately don't.
+# Ambiguous on purpose and left out: "Jackson" (JAX or Jackson ImmunoResearch), "Fluka"
+# (Sigma-Aldrich or Honeywell), "Pyrex" (Corning in the US, DWK in Europe).
+#
+# catalog_rule names a pack rule in apps.catalog.vendor_rules.RULES (for ATCC, a rule that
+# keeps the dot between digits).
+families:
+  - slug: thermo
+    name: Thermo Fisher Scientific
+    distributor: false
+    catalog_rule: thermo
+    vendors:
+      - name: Thermo Fisher Scientific
+        aliases: [thermo, Thermo Fisher, ThermoFisher, Thermo-Fisher, ThermoFisher Scientific,
+                  "Thermo Fisher Scientific, Inc.", Thermo Fisher Sci, TFS, thermofisher.com,
+                  Thermo Electron]
+      - name: Thermo Scientific
+        aliases: [Thermo Sci, Thermo Scientific Inc.]
+      - name: Gibco
+        aliases: [GIBCO BRL, Gibco by Life Technologies, Gibco by Thermo Fisher Scientific,
+                  Gibco Invitrogen, Bethesda Research Laboratories]
+      - name: Invitrogen
+        aliases: [Invitrogen by Thermo Fisher Scientific, Invitrogen Life Technologies,
+                  Invitrogen Corporation]
+      - name: Life Technologies
+        aliases: [Life Tech, LifeTech, Life Technologies Corporation]
+      - name: Applied Biosystems
+        aliases: [ABI, Applied Biosystems by Thermo Fisher Scientific, Applied Biosystem]
+      - name: Ambion
+        aliases: [Ambion by Life Technologies]
+      - name: Pierce
+        aliases: [Pierce Biotechnology, Pierce Chemical, Thermo Scientific Pierce]
+      - name: Molecular Probes
+        aliases: [Molecular Probes by Life Technologies, Invitrogen Molecular Probes]
+      - name: Nunc
+        aliases: [Nalge Nunc, Thermo Scientific Nunc, Nunc A/S]
+      - name: Nalgene
+        aliases: [Nalge, Thermo Scientific Nalgene]
+      - name: Lab-Tek
+        aliases: [Nunc Lab-Tek]
+      - name: Fermentas
+        aliases: [Thermo Scientific Fermentas, Fermentas Life Sciences]
+      - name: Finnzymes
+        aliases: []
+      - name: eBioscience
+        aliases: [eBio, Affymetrix, Affymetrix eBioscience, Invitrogen eBioscience]
+      - name: Novex
+        aliases: [Invitrogen Novex]
+      - name: Dynal
+        aliases: [Invitrogen Dynal, Dynal Biotech]
+      - name: GeneArt
+        aliases: [Invitrogen GeneArt]
+      - name: Zymed
+        aliases: [Zymed Laboratories]
+      - name: BioSource
+        aliases: [BioSource International]
+      - name: Ion Torrent
+        aliases: []
+      - name: PeproTech
+        aliases: [Pepro Tech, PeproTech by Thermo Fisher Scientific]
+      - name: Thermo Scientific Chemicals
+        aliases: [Alfa Aesar, Acros Organics, Acros, Thermo Scientific Acros]
+      - name: Oxoid
+        aliases: [Remel, Thermo Scientific Oxoid]
+      - name: Olink
+        aliases: [Olink Proteomics]
+
+  - slug: fisher
+    name: Fisher Scientific
+    distributor: true
+    catalog_rule: fisher
+    vendors:
+      - name: Fisher Scientific
+        aliases: [Fisher, Fisher Sci, FisherSci, fishersci.com, Fisher Scientific Company,
+                  Fisher Scientific International, Fisher Scientific (Thermo Fisher),
+                  Thermo Fisher Scientific - Fisher Scientific]
+      - name: Fisherbrand
+        aliases: [Fisher Brand]
+      - name: Fisher BioReagents
+        aliases: [Fisher Bioreagent]
+      - name: Fisher Chemical
+        aliases: [Fisher Chemicals]
+      - name: Fisher Healthcare
+        aliases: []
+
+  - slug: merck
+    name: Merck KGaA (MilliporeSigma)
+    distributor: false
+    catalog_rule: merck
+    vendors:
+      - name: Sigma-Aldrich
+        aliases: [Sigma, Aldrich, Sigma Aldrich, SigmaAldrich, Sigma-Aldrich Corp.,
+                  Sigma-Aldrich Co. LLC, Sigma Chemical, Sigma Chemical Company,
+                  Sigma Life Science, Sigma-Genosys, sigmaaldrich.com]
+      - name: MilliporeSigma
+        aliases: [Millipore Sigma, Millipore-Sigma]
+      - name: Millipore
+        aliases: [EMD Millipore, Merck Millipore, Millipore Corporation, Upstate,
+                  Upstate Biotechnology, Chemicon, Chemicon International, Amicon]
+      - name: Merck
+        aliases: [Merck KGaA, Merck Life Science, EMD, EMD Chemicals]
+      - name: Supelco
+        aliases: []
+      - name: Calbiochem
+        aliases: [EMD Calbiochem, Novabiochem]
+      - name: Novagen
+        aliases: [EMD Novagen]
+      - name: SAFC
+        aliases: [Sigma-Aldrich Fine Chemicals]
+
+  - slug: vwr
+    name: VWR (Avantor)
+    distributor: true
+    vendors:
+      - name: VWR
+        aliases: [VWR International, VWR Scientific, VWR Scientific Products, VWR Chemicals,
+                  VWR Life Science, vwr.com]
+      - name: Avantor
+        aliases: [Avantor Sciences, Avantor Performance Materials]
+      - name: J.T.Baker
+        aliases: [JT Baker, J. T. Baker, Baker Analyzed]
+      - name: Macron Fine Chemicals
+        aliases: [Macron]
+      - name: BDH
+        aliases: [VWR Chemicals BDH, BDH Chemicals]
+      - name: AMRESCO
+        aliases: [VWR Life Science AMRESCO]
+
+  - slug: neb
+    name: New England Biolabs
+    distributor: false
+    catalog_rule: neb
+    vendors:
+      - name: New England Biolabs
+        aliases: [NEB, New England BioLabs, New England Bio Labs, "New England Biolabs, Inc.",
+                  NEBiolabs, neb.com]
+
+  - slug: cst
+    name: Cell Signaling Technology
+    distributor: false
+    catalog_rule: cst
+    vendors:
+      - name: Cell Signaling Technology
+        aliases: [CST, Cell Signaling, Cell Signalling, Cell Signalling Technology,
+                  Cell Signaling Technologies, Cell Signaling Tech, Cell Signal,
+                  "Cell Signaling Technology, Inc.", cellsignal.com]
+
+  - slug: abcam
+    name: Abcam
+    distributor: false
+    vendors:
+      - name: Abcam
+        aliases: [abcam plc, Abcam Inc., Abcam Limited, abcam.com]
+      # Acquired by Abcam in 2021; its catalog was renumbered into ab numbers.
+      - name: BioVision
+        aliases: [BioVision Inc.]
+
+  - slug: scbt
+    name: Santa Cruz Biotechnology
+    distributor: false
+    vendors:
+      - name: Santa Cruz Biotechnology
+        aliases: [Santa Cruz, SCBT, Santa Cruz Biotech, Santa Cruz Bio, scbt.com]
+
+  - slug: biorad
+    name: Bio-Rad Laboratories
+    distributor: false
+    catalog_rule: biorad
+    vendors:
+      - name: Bio-Rad Laboratories
+        aliases: [Bio-Rad, BioRad, Bio Rad, Bio-Rad Labs, Bio-Rad Antibodies, AbD Serotec,
+                  Serotec, bio-rad.com]
+
+  - slug: qiagen
+    name: QIAGEN
+    distributor: false
+    vendors:
+      - name: QIAGEN
+        aliases: [Qiagen Sciences, Qiagen Inc., QIAGEN GmbH, MO BIO, MO BIO Laboratories,
+                  SABiosciences, SA Biosciences, Exiqon]
+
+  - slug: promega
+    name: Promega
+    distributor: false
+    vendors:
+      - name: Promega
+        aliases: [Promega Corporation, Promega Corp.]
+
+  - slug: corning
+    name: Corning
+    distributor: false
+    vendors:
+      - name: Corning
+        aliases: [Corning Inc., Corning Incorporated, Corning Life Sciences, corning.com]
+      # Falcon moved from BD to Corning in 2012 with its catalog numbers (352070, 353046).
+      - name: Falcon
+        aliases: [BD Falcon, Corning Falcon]
+      - name: Costar
+        aliases: [Corning Costar]
+      - name: Axygen
+        aliases: [Axygen Scientific, Corning Axygen]
+      - name: Corning cellgro
+        aliases: [cellgro, Mediatech]
+
+  - slug: eppendorf
+    name: Eppendorf
+    distributor: false
+    vendors:
+      - name: Eppendorf
+        aliases: [Eppendorf AG, Eppendorf SE, Eppendorf North America, Eppendorf Inc.]
+
+  - slug: idt
+    name: Integrated DNA Technologies
+    distributor: false
+    vendors:
+      - name: Integrated DNA Technologies
+        aliases: [IDT, IDT DNA, IDTDNA, idtdna.com, "Integrated DNA Technologies, Inc."]
+
+  - slug: takara
+    name: Takara Bio
+    distributor: false
+    catalog_rule: takara
+    vendors:
+      - name: Takara Bio
+        aliases: [Takara, TaKaRa, Takara Bio Inc., Takara Bio USA, Takara Bio Europe]
+      - name: Clontech
+        aliases: [Clontech Laboratories, Takara Clontech]
+      - name: Cellartis
+        aliases: []
+
+  - slug: biotechne
+    name: Bio-Techne
+    distributor: false
+    catalog_rule: biotechne
+    vendors:
+      - name: Bio-Techne
+        aliases: [Biotechne, Bio Techne]
+      - name: R&D Systems
+        aliases: ["R&D", R and D Systems, RnD Systems, RnD, "R & D Systems", rndsystems.com,
+                  "R&D Systems, Inc."]
+      - name: Tocris Bioscience
+        aliases: [Tocris, Tocris Cookson]
+      - name: Novus Biologicals
+        aliases: [Novus, novusbio]
+      - name: ProteinSimple
+        aliases: [Protein Simple]
+      - name: Advanced Cell Diagnostics
+        aliases: [ACD, ACD Bio, ACDBio]
+
+  - slug: biolegend
+    name: BioLegend
+    distributor: false
+    vendors:
+      # Part of Revvity since 2021, still sold under its own catalog and storefront.
+      - name: BioLegend
+        aliases: [Bio Legend, BioLegend Inc., biolegend.com]
+
+  - slug: bd
+    name: BD Biosciences
+    distributor: false
+    vendors:
+      - name: BD Biosciences
+        aliases: [BD, BD Bioscience, BD Pharmingen, Pharmingen, BD Horizon, BD OptiBuild,
+                  Becton Dickinson, "Becton, Dickinson and Company", BD Difco, Difco,
+                  BD Bacto, Bacto]
+
+  - slug: miltenyi
+    name: Miltenyi Biotec
+    distributor: false
+    vendors:
+      - name: Miltenyi Biotec
+        aliases: [Miltenyi, Miltenyi Biotech, Miltenyi Biotec GmbH, Miltenyi Biotec Inc., MACS]
+
+  - slug: stemcell
+    name: STEMCELL Technologies
+    distributor: false
+    vendors:
+      - name: STEMCELL Technologies
+        aliases: [StemCell, Stem Cell Technologies, STEMCELL Technologies Inc., Stemcell Tech]
+
+  - slug: atcc
+    name: ATCC
+    distributor: false
+    catalog_rule: atcc  # keeps the dot: CCL-2.2 (HeLa S3) is not CCL-22 (MDBK)
+    vendors:
+      - name: ATCC
+        aliases: [American Type Culture Collection, atcc.org]
+
+  - slug: addgene
+    name: Addgene
+    distributor: false
+    vendors:
+      - name: Addgene
+        aliases: [Addgene Inc., addgene.org]
+
+  - slug: genscript
+    name: GenScript
+    distributor: false
+    vendors:
+      - name: GenScript
+        aliases: [GenScript Biotech, GenScript USA, GenScript USA Inc.]
+
+  - slug: twist
+    name: Twist Bioscience
+    distributor: false
+    vendors:
+      - name: Twist Bioscience
+        aliases: [Twist, Twist Biosciences]
+
+  - slug: roche
+    name: Roche
+    distributor: false
+    vendors:
+      - name: Roche
+        aliases: [Roche Diagnostics, Roche Applied Science, Roche Life Science,
+                  Roche Molecular Systems, Roche Molecular Biochemicals, Roche CustomBiotech,
+                  Hoffmann-La Roche, F. Hoffmann-La Roche Ltd, Boehringer Mannheim]
+      - name: KAPA Biosystems
+        aliases: [KAPA, Kapa Bio, Roche KAPA]
+
+  - slug: lonza
+    name: Lonza
+    distributor: false
+    vendors:
+      - name: Lonza
+        aliases: [Lonza Bioscience, Lonza Walkersville, Lonza Group, Lonza Cologne]
+      - name: BioWhittaker
+        aliases: [Lonza BioWhittaker, Cambrex]
+      - name: Clonetics
+        aliases: [Lonza Clonetics]
+
+  - slug: selleck
+    name: Selleck Chemicals
+    distributor: false
+    catalog_rule: selleck
+    vendors:
+      - name: Selleck Chemicals
+        aliases: [Selleck, Selleckchem, Selleck Chem, Selleck Chemicals LLC, selleckchem.com]
+
+  - slug: mce
+    name: MedChemExpress
+    distributor: false
+    catalog_rule: mce
+    vendors:
+      - name: MedChemExpress
+        aliases: [MCE, MedChem Express, MedChemExpress LLC]
+
+  - slug: cayman
+    name: Cayman Chemical
+    distributor: false
+    catalog_rule: cayman
+    vendors:
+      - name: Cayman Chemical
+        aliases: [Cayman, Cayman Chemicals, Cayman Chemical Company]
+
+  - slug: jackson-immunoresearch
+    name: Jackson ImmunoResearch
+    distributor: false
+    vendors:
+      - name: Jackson ImmunoResearch
+        aliases: [Jackson ImmunoResearch Laboratories, Jackson Immuno Research,
+                  Jackson ImmunoResearch Labs, JIR]
+
+  - slug: proteintech
+    name: Proteintech
+    distributor: false
+    vendors:
+      - name: Proteintech
+        aliases: [Proteintech Group, PTG, ptglab, "Proteintech Group, Inc."]
+
+  - slug: agilent
+    name: Agilent Technologies
+    distributor: false
+    vendors:
+      - name: Agilent Technologies
+        aliases: [Agilent, Agilent Tech]
+      - name: Dako
+        aliases: [Dako North America, Agilent Dako]
+      - name: Stratagene
+        aliases: [Agilent Stratagene]
+      - name: Seahorse Bioscience
+        aliases: [Seahorse, Agilent Seahorse]
+      - name: BioTek
+        aliases: [BioTek Instruments]
+
+  - slug: illumina
+    name: Illumina
+    distributor: false
+    vendors:
+      - name: Illumina
+        aliases: [Illumina Inc.]
+
+  - slug: zymo
+    name: Zymo Research
+    distributor: false
+    catalog_rule: zymo
+    vendors:
+      - name: Zymo Research
+        aliases: [Zymo, Zymo Research Corp., ZymoResearch]
+
+  - slug: cytiva
+    name: Cytiva
+    distributor: false
+    catalog_rule: cytiva
+    vendors:
+      - name: Cytiva
+        aliases: [Cytiva Life Sciences, Global Life Sciences Solutions]
+      # GE Healthcare Life Sciences became Cytiva in 2020; old labels still say GE.
+      - name: GE Healthcare
+        aliases: [GE, GE Healthcare Life Sciences, GE Life Sciences, GE Healthcare Bio-Sciences]
+      - name: Amersham
+        aliases: [Amersham Biosciences, Amersham Pharmacia, Amersham Pharmacia Biotech,
+                  Pharmacia Biotech]
+      - name: Whatman
+        aliases: [GE Whatman]
+      - name: HyClone
+        aliases: [HyClone Laboratories, Thermo Scientific HyClone]
+      - name: Biacore
+        aliases: []
+
+  - slug: revvity
+    name: Revvity
+    distributor: false
+    vendors:
+      - name: Revvity
+        aliases: [PerkinElmer, Perkin Elmer, Revvity Inc.]
+      - name: Horizon Discovery
+        aliases: [Horizon Discovery Group]
+      # Owned in turn by Thermo Fisher, GE and Horizon; the catalog numbers stayed with it.
+      - name: Dharmacon
+        aliases: [GE Dharmacon, Thermo Scientific Dharmacon, Horizon Dharmacon]
+      - name: Cisbio
+        aliases: [Cisbio Bioassays]
+
+  - slug: jax
+    name: The Jackson Laboratory
+    distributor: false
+    vendors:
+      - name: The Jackson Laboratory
+        aliases: [JAX, Jackson Lab, Jackson Labs, JAX Mice]
+
+  - slug: greiner
+    name: Greiner Bio-One
+    distributor: false
+    vendors:
+      - name: Greiner Bio-One
+        aliases: [Greiner, Greiner Bio-One GmbH, Greiner Bio-One North America]
+
+  - slug: sarstedt
+    name: Sarstedt
+    distributor: false
+    vendors:
+      - name: Sarstedt
+        aliases: [Sarstedt AG, Sarstedt Inc.]
+
+  - slug: synthego
+    name: Synthego
+    distributor: false
+    vendors:
+      - name: Synthego
+        aliases: [Synthego Corporation]
+
+  - slug: vector-labs
+    name: Vector Laboratories
+    distributor: false
+    vendors:
+      - name: Vector Laboratories
+        aliases: [Vector Labs]
+
+  - slug: origene
+    name: OriGene Technologies
+    distributor: false
+    vendors:
+      - name: OriGene Technologies
+        aliases: [OriGene]
+
+  - slug: sartorius
+    name: Sartorius
+    distributor: false
+    vendors:
+      - name: Sartorius
+        aliases: [Sartorius AG, Sartorius Stedim, Sartorius Stedim Biotech]
+
+  - slug: biotium
+    name: Biotium
+    distributor: false
+    vendors:
+      - name: Biotium
+        aliases: []
+
+  - slug: active-motif
+    name: Active Motif
+    distributor: false
+    vendors:
+      - name: Active Motif
+        aliases: []
+
+  - slug: enzo
+    name: Enzo Life Sciences
+    distributor: false
+    vendors:
+      - name: Enzo Life Sciences
+        aliases: [Enzo, Enzo Biochem]
+
+  - slug: avanti
+    name: Avanti Polar Lipids
+    distributor: false
+    vendors:
+      - name: Avanti Polar Lipids
+        aliases: [Avanti, Avanti Lipids]
+
+  - slug: goldbio
+    name: Gold Biotechnology
+    distributor: false
+    vendors:
+      - name: Gold Biotechnology
+        aliases: [GoldBio, Gold Bio]
+
+  - slug: rainin
+    name: Rainin
+    distributor: false
+    vendors:
+      - name: Rainin
+        aliases: [Mettler Toledo Rainin, Rainin Instrument]
+
+  - slug: gilson
+    name: Gilson
+    distributor: false
+    vendors:
+      - name: Gilson
+        aliases: []
+
+  # Distributors and marketplaces beyond Fisher and VWR.
+  - slug: thomas
+    name: Thomas Scientific
+    distributor: true
+    vendors:
+      - name: Thomas Scientific
+        aliases: [Thomas Sci, thomassci, thomassci.com]
+
+  - slug: genesee
+    name: Genesee Scientific
+    distributor: true
+    vendors:
+      - name: Genesee Scientific
+        aliases: [Genesee, Genesee Sci, geneseesci, Olympus Plastics]
+
+  - slug: neta
+    name: Neta Scientific
+    distributor: true
+    vendors:
+      - name: Neta Scientific
+        aliases: [Neta, netascientific]
+
+  - slug: usa-scientific
+    name: USA Scientific
+    distributor: true
+    vendors:
+      # Distributes Eppendorf and others alongside its own TipOne line; not owned by Eppendorf.
+      - name: USA Scientific
+        aliases: [USA Scientific Inc.]
+
+  - slug: govsci
+    name: Government Scientific Source
+    distributor: true
+    vendors:
+      - name: Government Scientific Source
+        aliases: [GovSci, govsci.com]
+
+  - slug: cole-parmer
+    name: Cole-Parmer
+    distributor: true
+    vendors:
+      - name: Cole-Parmer
+        aliases: [Cole-Parmer Instrument Company]
+
+  - slug: grainger
+    name: Grainger
+    distributor: true
+    vendors:
+      - name: Grainger
+        aliases: [W.W. Grainger, Grainger Industrial Supply]
+
+  - slug: mcmaster
+    name: McMaster-Carr
+    distributor: true
+    vendors:
+      - name: McMaster-Carr
+        aliases: [McMaster, mcmaster.com]
+
+  - slug: amazon
+    name: Amazon
+    distributor: true
+    vendors:
+      - name: Amazon
+        aliases: [Amazon Business, Amazon.com, Amazon com]
+
+  - slug: quartzy
+    name: Quartzy Shop
+    distributor: true
+    vendors:
+      - name: Quartzy
+        aliases: [Quartzy Shop, Quartzy Inc.]

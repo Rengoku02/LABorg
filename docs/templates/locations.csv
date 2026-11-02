@@ -1,0 +1,8 @@
+path,kind,temperature,owner_email,code,notes
+Room 210,room,,,,
+Room 210 / -80 A,freezer,-80C,,F80A,shared -80 by the window
+Room 210 / -80 A / Shelf 1,shelf,-80C,,,
+Room 210 / -80 A / Shelf 1 / Rack 3,rack,-80C,priya@example.edu,,
+Room 210 / -20 B,freezer,-20C,,F20B,
+Room 210 / Fridge 1,fridge,4C,,R1,
+Room 214 / LN2 dewar,ln2_dewar,LN2,,LN2-1,cell line stocks

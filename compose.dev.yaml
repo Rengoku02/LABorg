@@ -1,0 +1,28 @@
+# Local development services. Django itself runs on the host via `uv run`.
+#   docker compose -f compose.dev.yaml up -d
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: labstock
+      POSTGRES_USER: labstock
+      POSTGRES_PASSWORD: labstock
+    ports:
+      - "127.0.0.1:54329:5432"
+    # postgres:18 keeps PGDATA under /var/lib/postgresql/18/docker; mount the parent.
+    volumes:
+      - pgdata-dev:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labstock -d labstock"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:1025:1025" # SMTP
+      - "127.0.0.1:8025:8025" # web UI: http://localhost:8025
+
+volumes:
+  pgdata-dev:
