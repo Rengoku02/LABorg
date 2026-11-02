@@ -526,6 +526,21 @@ Visibility matrix (the presenter is the only place it is decided):
   - Its dry run is `import_run(commit=...)`, so a row that fails in the services (a
     position the box doesn't have, such as `J1` in a 9×9 box, or a retired location) is an
     error on its line too.
+- As built (`importers.import_stock(path, *, lab, commit=False, verified=False,
+  create_locations=False, placeholders=False, user=None) -> StockReport`, plus
+  `write_review_csv(report, path)`):
+  - The review CSV is `<file>.review.csv`, written on a dry run, a commit and a failed run
+    alike (`StockImportFailed` carries the report): line, action (`create` / `exists` /
+    `error`), owner, item, product, resolution, items, aggregate, location, short ids,
+    warnings, errors.
+  - Each item's `client_uuid` is a uuid5 of (lab, the file's sha256, line, container n), so
+    re-importing the same file creates nothing (rows report `exists`).
+  - Up to `inventory.quartzy_split_max` containers make that many items; more make one
+    aggregate. `size` ("100 uL") becomes each item's quantity + unit.
+  - A lot goes through `get_or_create_lot` (the expiry then goes on the lot); an
+    `outside_purchase` row also records `OrderRequest(source=outside, status=RECEIVED)`, found
+    again on a re-import by its import key in `raw_payload`.
+  - Lab registers (LN2 log, primer, plasmid, antibody lists) are reshaped into this template.
 - `link_quartzy_inventory --lab SLUG [--commit]` turns the raw Quartzy inventory mirror into
   StockItems with ExternalRefs:
   - Each instance (or each item when instances are off) gets one StockItem per container when
@@ -538,6 +553,9 @@ Visibility matrix (the presenter is the only place it is decided):
   - Items are always `unverified`, with `event_source="sync"` and
     `source="quartzy_inventory"`.
   - Idempotent through ExternalRef.
+  - As built (`apps/inventory/quartzy_link.py`): a quantity that isn't a whole number of
+    containers (a volume, or none) gives one item with "Quartzy quantity: …" in its notes;
+    each item's `client_uuid` comes from its instance, so concurrent runs can't double it.
 
 ## 4. Claims and intake (`apps/inventory/claims.py`, `intake.py`; views in `apps/bench`)
 

@@ -9,15 +9,28 @@ Shared by the import commands:
 
 ``import_locations(path, *, lab, commit=False)`` loads docs/templates/locations.csv
 (``path, kind, temperature, owner_email, code, notes``) through ``services.create_location``.
+
+``import_stock(path, *, lab, commit=False, ...)`` loads docs/templates/stock-sheet.csv through
+``services.create_stock_item``; ``write_review_csv`` writes what each row did.
 """
 
 import csv
+import hashlib
+import re
+import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import date, datetime, time
+from decimal import Decimal
+from pathlib import Path
 
 from django.db import transaction
+from django.utils import timezone
 
-from apps.core.models import User
+from apps.catalog.models import ItemType
+from apps.catalog.services import get_or_create_lot, resolve_supplier_product
+from apps.core.models import Membership, User
+from apps.core.policies import get_policy
 
 from . import services
 from .management.commands.seed_inventory import (
@@ -25,7 +38,18 @@ from .management.commands.seed_inventory import (
     load_yaml,
     location_type_values,
 )
-from .models import PATH_SEPARATOR, Location, LocationType, parse_temperature, temperature_label
+from .models import (
+    PATH_SEPARATOR,
+    ExpiryPrecision,
+    Lifecycle,
+    Location,
+    LocationType,
+    Source,
+    StockEvent,
+    Visibility,
+    parse_temperature,
+    temperature_label,
+)
 from .selectors import ancestor_chains, split_path
 from .shortid import location_code_problem
 
@@ -394,3 +418,450 @@ def import_locations(path, *, lab, commit=False, user=None):
             _apply(plans, lab, user, report, errors)
     report.committed = commit
     return report
+
+
+# ---------------------------------------------------------------------------------------
+# import_stock: lab registers and personal sheets (docs/templates/stock-sheet.csv)
+
+STOCK_COLUMNS = (
+    "owner_email",
+    "item_name",
+    "vendor",
+    "catalog_number",
+    "lot",
+    "type",
+    "containers",
+    "size",
+    "location",
+    "temperature",
+    "position",
+    "share",
+    "source",
+    "date",
+    "expiry",
+    "opened",
+    "mta",
+    "notes",
+)
+YES = {"yes", "y", "true", "1", "x"}
+NO = {"", "no", "n", "false", "0"}
+_SHARE = {
+    "shared": Visibility.SHARED,
+    "ask-first": Visibility.ASK_FIRST,
+    "ask_first": Visibility.ASK_FIRST,
+    "ask first": Visibility.ASK_FIRST,
+    "restricted": Visibility.RESTRICTED,
+}
+_SIZE = re.compile(r"^\s*(?P<amount>\d+(?:[.,]\d+)?)\s*(?P<unit>\S.*)?$")
+_STOCK_NAMESPACE = uuid.UUID("2f5b8a1c-9d3e-4c7a-8b6f-0e1d2c3b4a59")
+
+
+@dataclass
+class StockRow:
+    """What one sheet row did (or would do): the review CSV is one line per row."""
+
+    line: int
+    owner: str
+    item_name: str
+    action: str = ""  # create | exists | error
+    product: str = ""
+    resolution: str = ""
+    items: int = 0
+    aggregate: bool = False
+    location: str = ""
+    short_ids: list = field(default_factory=list)
+    warnings: list = field(default_factory=list)
+    errors: list = field(default_factory=list)
+
+
+@dataclass
+class StockReport:
+    rows: list = field(default_factory=list)
+    created_locations: list = field(default_factory=list)  # PlannedLocation
+    placeholders: list = field(default_factory=list)  # emails
+    committed: bool = False
+
+    @property
+    def items(self):
+        return sum(row.items for row in self.rows if row.action == "create")
+
+
+class StockImportFailed(ImportFailed):
+    """ImportFailed with the report so far, for the review CSV."""
+
+    def __init__(self, errors, report):
+        super().__init__(errors)
+        self.report = report
+
+
+def import_stock(
+    path,
+    *,
+    lab,
+    commit=False,
+    verified=False,
+    create_locations=False,
+    placeholders=False,
+    user=None,
+):
+    """Load a stock sheet into ``lab``; return a StockReport (design §3).
+
+    Each row becomes stock through ``services.create_stock_item`` (the ledger records
+    "<file> line N"): one item per container up to ``inventory.quartzy_split_max``, else one
+    aggregate. Items are unverified unless ``verified``. A row with a location path goes
+    there (missing places are created with ``create_locations``, else it's an error); without
+    one, into the owner's unsorted container for its temperature. Products resolve through
+    the catalog. An ``outside_purchase`` row also records the purchase, so the guard sees it
+    as bought before. ``placeholders`` makes former members (unknown owner emails) into
+    placeholder users with a leaver membership.
+
+    Re-importing the same file creates nothing: each item's ``client_uuid`` comes from the
+    lab, the file's content and the row. Any error names its line and nothing is saved
+    (StockImportFailed, with the report for the review CSV). Unless ``commit``, everything
+    runs and is rolled back.
+    """
+    rows = read_rows(path, required=("owner_email", "item_name"))
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    report = StockReport()
+    source_name = Path(path).name
+    try:
+        with import_run(commit=commit) as errors:
+            if create_locations:
+                services.lock_location_tree(lab)
+            paths = PathIndex(lab, user=user, created=report.created_locations)
+            for row in rows:
+                result = _import_stock_row(
+                    row,
+                    lab=lab,
+                    paths=paths,
+                    digest=digest,
+                    source_name=source_name,
+                    verified=verified,
+                    create_locations=create_locations,
+                    placeholders=placeholders,
+                    user=user,
+                    report=report,
+                )
+                report.rows.append(result)
+                errors.extend(f"line {row.line}: {message}" for message in result.errors)
+    except ImportFailed as exc:
+        raise StockImportFailed(exc.errors, report) from exc
+    report.committed = commit
+    return report
+
+
+def _import_stock_row(row, *, lab, paths, digest, source_name, verified, create_locations,
+                      placeholders, user, report):  # fmt: skip
+    values = row.values
+    result = StockRow(line=row.line, owner=values.get("owner_email", ""), item_name="")
+    result.item_name = values.get("item_name", "")
+    owner = _stock_owner(values.get("owner_email", ""), lab, placeholders, report, result)
+    if not result.item_name:
+        result.errors.append("item_name is required")
+    item_type = _item_type(values.get("type", ""), result)
+    containers = _containers(values.get("containers", ""), result)
+    quantity, unit = _size(values.get("size", ""), result)
+    occurred_at = _iso_date(values.get("date", ""), "date", result)
+    expiry, precision = _expiry(values.get("expiry", ""), result)
+    visibility = _visibility(values.get("share", ""), result)
+    source = _source(values.get("source", ""), result)
+    opened = _flag(values.get("opened", ""), "opened", result)
+    mta = _flag(values.get("mta", ""), "mta", result)
+    temperature = ""
+    try:
+        temperature = parse_temperature(values.get("temperature"))
+    except ValueError as exc:
+        result.errors.append(str(exc))
+    location = None
+    path_text = values.get("location", "")
+    if path_text:
+        try:
+            location = (
+                paths.ensure(path_text, line=row.line)
+                if create_locations
+                else (paths.get(path_text))
+            )
+        except services.InventoryError as exc:
+            result.errors.append(str(exc))
+        else:
+            if location is None:
+                result.errors.append(
+                    f"no location {path_text!r} in LabStock; add it to locations.csv, or "
+                    "import with --create-locations"
+                )
+    if result.errors or owner is None:
+        result.action = "error"
+        return result
+
+    resolution = resolve_supplier_product(
+        vendor_name=values.get("vendor", ""),
+        catalog_number=values.get("catalog_number", ""),
+        item_name=result.item_name,
+        item_type=item_type,
+        unit_size=values.get("size", ""),
+    )
+    product = resolution.product
+    result.product, result.resolution = product.name, resolution.status
+    if item_type is None and not values.get("type"):
+        result.warnings.append("no type given: review the product's type in the admin")
+    lot = get_or_create_lot(
+        product, values.get("lot", ""), expiry=expiry, expiry_precision=precision or "day"
+    )
+    order_request = None
+    if source == Source.OUTSIDE_PURCHASE:
+        order_request = _outside_purchase(lab, owner, values, resolution, occurred_at, digest, row)
+    split_max = get_policy("inventory.quartzy_split_max", lab)
+    aggregate = containers > split_max
+    count = 1 if aggregate else containers
+    lifecycle = Lifecycle.AVAILABLE if verified else Lifecycle.UNVERIFIED
+    opened_at = None
+    if opened:
+        opened_at = occurred_at or timezone.now()
+        if verified:
+            lifecycle = Lifecycle.OPENED
+    result.location = location.path_text() if location else _unsorted_text(owner, temperature)
+    if location is None and not temperature:
+        result.warnings.append("no location and no temperature: unsorted, temperature unknown")
+    common = {
+        "lab": lab,
+        "product": product,
+        "supplier_product": resolution.supplier_product,
+        "lot": lot,
+        "custodian": owner,
+        "user": user,
+        "source": source,
+        "location": location,
+        "temperature": None if location else temperature,
+        "visibility": visibility,
+        "lifecycle": lifecycle,
+        "position_label": values.get("position", ""),
+        "quantity": quantity,
+        "unit": unit,
+        "expiry_date": expiry if lot is None else None,
+        "expiry_precision": precision or "day",
+        "mta": mta,
+        "source_order_request": order_request,
+        "notes": values.get("notes", ""),
+        "occurred_at": occurred_at,
+        "opened_at": opened_at,
+        "event_source": "import",
+        "reason": f"{source_name} line {row.line}",
+        "is_aggregate": aggregate,
+        "container_count": containers if aggregate else None,
+    }
+    existed = 0
+    for number in range(count):
+        client_uuid = uuid.uuid5(_STOCK_NAMESPACE, f"{lab.pk}:{digest}:{row.line}:{number}")
+        if StockEvent.objects.filter(client_uuid=client_uuid).exists():
+            existed += 1
+        try:
+            item = services.create_stock_item(client_uuid=client_uuid, **common)
+        except services.InventoryError as exc:
+            result.errors.append(str(exc))
+            result.action = "error"
+            return result
+        result.short_ids.append(item.short_id)
+    result.items, result.aggregate = count, aggregate
+    result.action = "exists" if existed == count else "create"
+    return result
+
+
+def _stock_owner(email, lab, placeholders, report, result):
+    email = email.strip().lower()
+    if not email:
+        result.errors.append("owner_email is required")
+        return None
+    owner = User.objects.filter(email=email).first()
+    if owner is not None and services.may_hold_stock(owner, lab):
+        return owner
+    if not placeholders:
+        result.errors.append(
+            f"no one in {lab} has the email {email} (import with --placeholders for people "
+            "who have left)"
+        )
+        return None
+    if owner is None:
+        name = email.split("@")[0].replace(".", " ").title()
+        owner = User.objects.create_user(
+            email=email, full_name=name, kind=User.Kind.PLACEHOLDER, is_active=False
+        )
+    Membership.objects.get_or_create(
+        user=owner, lab=lab, defaults={"status": Membership.Status.LEAVER}
+    )
+    if email not in report.placeholders:
+        report.placeholders.append(email)
+    result.warnings.append(f"{email} is a placeholder (a former member)")
+    return owner
+
+
+def _item_type(key, result):
+    key = key.strip().lower()
+    if not key:
+        return None
+    item_type = ItemType.objects.filter(key=key).first()
+    if item_type is None:
+        keys = ", ".join(ItemType.objects.order_by("key").values_list("key", flat=True))
+        result.errors.append(f"unknown type {key!r}; use one of {keys}")
+    return item_type
+
+
+def _containers(value, result):
+    if not value.strip():
+        return 1
+    try:
+        number = int(value)
+    except ValueError:
+        result.errors.append(f"containers must be a whole number, not {value!r}")
+        return 1
+    if number < 1:
+        result.errors.append("containers must be at least 1")
+        return 1
+    return number
+
+
+def _size(value, result):
+    """("100 uL") -> (Decimal("100"), "uL"); a size that isn't amount + unit is a warning
+    and is kept in the notes' place: the review CSV shows it."""
+    if not value.strip():
+        return None, ""
+    match = _SIZE.match(value)
+    if match is None:
+        result.warnings.append(f"size {value!r} isn't an amount and a unit; left out")
+        return None, ""
+    amount = Decimal(match["amount"].replace(",", "."))
+    return amount, (match["unit"] or "").strip()[:20]
+
+
+def _iso_date(value, name, result):
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        result.errors.append(f"{name} must be YYYY-MM-DD, not {value!r}")
+        return None
+
+
+def _expiry(value, result):
+    value = value.strip()
+    if not value:
+        return None, None
+    if re.fullmatch(r"\d{4}-\d{2}", value):
+        try:
+            return date.fromisoformat(f"{value}-01"), ExpiryPrecision.MONTH
+        except ValueError:
+            pass
+    else:
+        try:
+            return date.fromisoformat(value), ExpiryPrecision.DAY
+        except ValueError:
+            pass
+    result.errors.append(f"expiry must be YYYY-MM-DD or YYYY-MM, not {value!r}")
+    return None, None
+
+
+def _visibility(value, result):
+    value = value.strip().lower()
+    if not value:
+        return None  # the lab's default
+    if value not in _SHARE:
+        result.errors.append(f"share must be shared, ask-first or restricted, not {value!r}")
+        return None
+    return _SHARE[value]
+
+
+def _source(value, result):
+    value = value.strip().lower() or Source.PURCHASED
+    allowed = [s for s in Source.values if s not in (Source.QUARTZY_INVENTORY, Source.IMPORT)]
+    if value not in allowed:
+        result.errors.append(f"source must be one of {', '.join(allowed)}, not {value!r}")
+        return Source.PURCHASED
+    return value
+
+
+def _flag(value, name, result):
+    value = value.strip().lower()
+    if value in YES:
+        return True
+    if value not in NO:
+        result.errors.append(f"{name} must be yes or no, not {value!r}")
+    return False
+
+
+def _unsorted_text(owner, temperature):
+    label = temperature_label(temperature)
+    return f"Unsorted: {owner}" + (f", {label}" if label else "")
+
+
+def _outside_purchase(lab, owner, values, resolution, occurred_at, digest, row):
+    """The purchase behind an ``outside_purchase`` row, so the guard counts it as bought
+    before. Found again on a re-import by its import key."""
+    from apps.quartzy.models import OrderRequest
+
+    key = f"{digest}:{row.line}"
+    existing = OrderRequest.objects.filter(
+        lab=lab, source=OrderRequest.Source.OUTSIDE, raw_payload__import_key=key
+    ).first()
+    if existing is not None:
+        return existing
+    when = (
+        timezone.make_aware(datetime.combine(occurred_at, time.min))
+        if occurred_at
+        else timezone.now()
+    )
+    return OrderRequest.objects.create(
+        lab=lab,
+        source=OrderRequest.Source.OUTSIDE,
+        status=OrderRequest.Status.RECEIVED,
+        item_name=values.get("item_name", "")[:500],
+        vendor_name_raw=values.get("vendor", "")[:300],
+        catalog_number_raw=values.get("catalog_number", "")[:200],
+        unit_size_raw=values.get("size", "")[:200],
+        requested_by=owner,
+        requested_at=when,
+        supplier_product=resolution.supplier_product,
+        product=resolution.product,
+        resolution_status=resolution.status,
+        raw_payload={"import_key": key, "line": row.line},
+    )
+
+
+REVIEW_COLUMNS = (
+    "line",
+    "action",
+    "owner",
+    "item_name",
+    "product",
+    "resolution",
+    "items",
+    "aggregate",
+    "location",
+    "short_ids",
+    "warnings",
+    "errors",
+)
+
+
+def write_review_csv(report, path):
+    """One line per sheet row: what was (or would be) done, and why not."""
+    with open(path, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(REVIEW_COLUMNS)
+        for row in report.rows:
+            writer.writerow(
+                [
+                    row.line,
+                    row.action,
+                    row.owner,
+                    row.item_name,
+                    row.product,
+                    row.resolution,
+                    row.items,
+                    "yes" if row.aggregate else "",
+                    row.location,
+                    " ".join(row.short_ids),
+                    "; ".join(row.warnings),
+                    "; ".join(row.errors),
+                ]
+            )

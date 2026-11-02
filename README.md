@@ -32,6 +32,9 @@ uv run python manage.py provision_members roster.csv --lab our-lab           # d
 uv run python manage.py provision_members roster.csv --lab our-lab --commit
 uv run python manage.py import_locations locations.csv --lab our-lab         # dry run
 uv run python manage.py import_locations locations.csv --lab our-lab --commit
+uv run python manage.py import_stock stock-sheet.csv --lab our-lab            # dry run + review CSV
+uv run python manage.py import_stock stock-sheet.csv --lab our-lab --commit
+uv run python manage.py link_quartzy_inventory --lab our-lab                  # dry run
 uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
