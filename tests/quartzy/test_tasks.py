@@ -234,7 +234,8 @@ def test_tasks_skip_inactive_labs_and_a_missing_token(quartzy_lab, use_fake, set
 
 
 def schedule_names():
-    return set(Schedule.objects.values_list("name", flat=True))
+    """The Quartzy sync's schedules (other apps register their own prefixes)."""
+    return set(Schedule.objects.filter(name__startswith="quartzy.").values_list("name", flat=True))
 
 
 def test_setup_schedules_is_idempotent_and_follows_active_labs(lab, quartzy_lab):
@@ -260,20 +261,21 @@ def test_setup_schedules_is_idempotent_and_follows_active_labs(lab, quartzy_lab)
     nightly = Schedule.objects.get(name=f"quartzy.nightly.{pk}")
     assert nightly.schedule_type == Schedule.DAILY
     assert nightly.next_run.astimezone(NEW_YORK).hour == 3
-    assert "6 created" in out.getvalue()
+    assert "quartzy. 6 created" in out.getvalue()
 
     call_command("setup_schedules", stdout=(out := StringIO()))
-    assert "0 created, 0 updated, 0 removed" in out.getvalue() and Schedule.objects.count() == 6
+    assert "quartzy. 0 created, 0 updated, 0 removed" in out.getvalue()
+    assert Schedule.objects.filter(name__startswith="quartzy.").count() == 6
 
     Schedule.objects.filter(name=f"quartzy.head.{pk}").update(minutes=7)  # edited by hand
     call_command("setup_schedules", stdout=(out := StringIO()))
-    assert "1 updated" in out.getvalue()
+    assert "quartzy. 0 created, 1 updated" in out.getvalue()
     assert Schedule.objects.get(name=f"quartzy.head.{pk}").minutes == 2
 
     quartzy_lab.is_active = False
     quartzy_lab.save()
     call_command("setup_schedules", stdout=(out := StringIO()))
-    assert "4 removed" in out.getvalue()
+    assert "quartzy. 0 created, 0 updated, 4 removed" in out.getvalue()
     assert schedule_names() == {"quartzy.heartbeat", "quartzy.spec_diff"}
 
 

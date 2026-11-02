@@ -48,8 +48,7 @@ from pydantic import ValidationError
 
 from apps.catalog.models import ItemType, Product, SupplierProduct
 from apps.catalog.services import resolve_supplier_product, retire_orphans, suggest_item_type
-from apps.core.mail import queue_notification
-from apps.core.models import Membership, Notification, User
+from apps.core.mail import notify_admins
 from apps.core.people import resolve_person
 from apps.core.policies import get_policy
 
@@ -212,27 +211,6 @@ def record_error(run, kind, message, *, quartzy_id="", payload=None):
         if payload is None:
             raise
         SyncError.objects.create(**fields)
-
-
-def notify_admins(lab, *, title, message, subject_obj, period_key=""):
-    """Queue a SYSTEM email to the lab's system owners and to superusers."""
-    admins = (
-        User.objects.filter(is_active=True, email__isnull=False)
-        .filter(
-            Q(is_superuser=True) | Q(memberships__lab=lab, memberships__role=Membership.Role.ADMIN)
-        )
-        .distinct()
-    )
-    for admin in admins:
-        queue_notification(
-            lab=lab,
-            kind=Notification.Kind.SYSTEM,
-            subject_obj=subject_obj,
-            recipient_email=admin.email,
-            recipient=admin,
-            period_key=period_key,
-            context={"title": title, "message": message},
-        )
 
 
 def _abort(run, qlab, message):

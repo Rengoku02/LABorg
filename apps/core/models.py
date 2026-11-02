@@ -124,6 +124,13 @@ class Membership(models.Model):
     # The Quartzy API can't list roles, so whether someone is a Quartzy Lab Admin (and can
     # therefore mark requests Ordered or cancel other people's requests) is recorded here.
     is_quartzy_lab_admin = models.BooleanField(default=False)
+    # A bench champion (plan §4): works the lab-pool claims list (departed members' items,
+    # "not mine" claims) with the co-owner.
+    is_champion = models.BooleanField(default=False)
+    # Lenders are thanked by name in the lab summary only if they opt in (plan §11).
+    thank_by_name = models.BooleanField(
+        default=False, help_text="May the weekly lab summary thank this person by name?"
+    )
 
     class Meta:
         constraints = [

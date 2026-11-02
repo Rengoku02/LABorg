@@ -59,7 +59,7 @@
   <dl>
     <dt>Calls to Quartzy in the last hour</dt><dd>{{ panel.calls_last_hour }}</dd>
     <dt>Open requests</dt><dd>{{ panel.open }} of {{ panel.requests }}</dd>
-    <dt>Requests the guard can't check (no usable catalog #)</dt>
+    <dt>Requests without a usable catalog # (none, generic, or not resolved yet; the guard's own share is in <code>guard_report</code>)</dt>
     <dd>{% if panel.uncheckable_share is None %}—{% else %}{{ panel.uncheckable_share }}% ({{ panel.uncheckable }}){% endif %}</dd>
     <dt>People to match (unresolved Quartzy users)</dt><dd>{{ panel.unresolved_people }}</dd>
     <dt>Provisional products to review</dt><dd>{{ panel.provisional_products }}</dd>

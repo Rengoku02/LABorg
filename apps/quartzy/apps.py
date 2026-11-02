@@ -11,8 +11,11 @@ class QuartzyConfig(AppConfig):
         from django.db.models.signals import post_save, pre_save
 
         from apps.catalog.models import ItemType
+        from apps.core import schedules
 
-        from . import receivers
+        from . import receivers, tasks
+
+        schedules.register(tasks.SCHEDULE_PREFIX, tasks.wanted_schedules)
 
         pre_save.connect(
             receivers.item_type_before_save,

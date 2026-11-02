@@ -1,6 +1,6 @@
 """Create or update accounts and memberships from the lab roster (closed signup).
 
-CSV columns: email, full_name, role, status, start_date, end_date, quartzy_lab_admin
+CSV columns: email, full_name, role, status, start_date, end_date, quartzy_lab_admin, champion
 Only email and full_name are required. Dry run by default; pass --commit to save.
 """
 
@@ -13,6 +13,10 @@ from django.db import transaction
 from apps.core.models import Lab, Membership, User
 
 TRUE = {"1", "y", "yes", "true", "x"}
+
+
+def _flag(value):
+    return (value or "").strip().lower() in TRUE
 
 
 def _date(value):
@@ -66,10 +70,8 @@ class Command(BaseCommand):
                             "status": status,
                             "start_date": _date(row.get("start_date")) or date.today(),
                             "end_date": _date(row.get("end_date")),
-                            "is_quartzy_lab_admin": (row.get("quartzy_lab_admin") or "")
-                            .strip()
-                            .lower()
-                            in TRUE,
+                            "is_quartzy_lab_admin": _flag(row.get("quartzy_lab_admin")),
+                            "is_champion": _flag(row.get("champion")),
                         },
                     )
                     verb = "add" if m_created else "update"

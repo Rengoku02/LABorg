@@ -35,11 +35,10 @@ def action(request, token, action):
         raise Http404("Unknown action")
 
     if request.method in ("GET", "HEAD"):
-        return render(
-            request,
-            "core/action_confirm.html",
-            {"notification": notification, "action": registered},
-        )
+        context = {"notification": notification, "action": registered}
+        if registered.confirm_context is not None:
+            context.update(registered.confirm_context(notification) or {})
+        return render(request, registered.confirm_template, context)
 
     reason = request.POST.get("reason", "")
     if registered.reasons and reason not in {value for value, _ in registered.reasons}:
@@ -55,6 +54,6 @@ def action(request, token, action):
         return render(request, "core/action_invalid.html", {"reason": str(exc)}, status=400)
     return render(
         request,
-        "core/action_done.html",
+        registered.done_template,
         {"notification": notification, "action": registered, "repeat": False},
     )

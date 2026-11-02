@@ -38,7 +38,8 @@ uv run python manage.py runserver
 
 - Signup is closed. Members sign in with an emailed code; in dev you'll find it in Mailpit at
   <http://localhost:8025>.
-- Roster CSV columns: `email, full_name, role, status, start_date, end_date, quartzy_lab_admin`.
+- Roster CSV columns: `email, full_name, role, status, start_date, end_date, quartzy_lab_admin,
+  champion` (`docs/templates/roster.csv`).
   - `role` is one of `member`, `co_owner`, `pi`, `admin`.
   - `status` is one of `active`, `rotator`, `leaver`.
 - Locations CSV columns (`docs/templates/locations.csv`, explained in

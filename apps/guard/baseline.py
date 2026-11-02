@@ -72,7 +72,8 @@ BUCKETS = (
     "same_number_same_lab_open", "unknown_open_state", "different_quartzy_labs",
     "format_variant", "pack_variant", "received_earlier", "other_vendor_equivalent", "unknown",
 )  # fmt: skip
-TIERS = ("T1", "T2", "T1x")
+# Strongest first, as the guard ranks them (design §6; apps.guard.matcher.TIER_ORDER).
+TIERS = ("T1", "T1x", "T2")
 LABELS = ("true_dup", "related_not_dup", "false")
 # The first three are NormalizedCatalog.no_key_reason values.
 UNCHECKABLE_REASONS = ("placeholder", "excel_mangled", "too_long", "generic", "no_vendor")

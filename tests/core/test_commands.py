@@ -28,3 +28,19 @@ def test_provision_members_dry_run_then_commit(lab, tmp_path):
 def test_bootstrap_lab_is_idempotent(lab):
     call_command("bootstrap_lab", name="Test Lab", slug="test-lab", verbosity=0)
     assert User.objects.filter(kind=User.Kind.POOL).count() == 1
+
+
+@pytest.mark.django_db
+def test_roster_marks_champions_and_the_template_loads(lab):
+    from apps.core.permissions import is_champion
+
+    call_command(
+        "provision_members", "docs/templates/roster.csv", lab="test-lab", commit=True, verbosity=0
+    )
+    champions = Membership.objects.filter(lab=lab, is_champion=True)
+    assert [m.user.email for m in champions] == ["priya@example.edu"]
+    priya = champions[0].user
+    pat = Membership.objects.get(user__email="pi@example.edu").user
+    manager = Membership.objects.get(user__email="manager@example.edu").user
+    assert is_champion(priya, lab) and is_champion(manager, lab)  # co-owners may too
+    assert not is_champion(pat, lab)

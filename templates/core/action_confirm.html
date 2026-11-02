@@ -8,6 +8,7 @@
   <h1>{{ action.label }}</h1>
   <p>Recording as <strong>{{ notification.recipient|default:notification.recipient_email }}</strong>.
      Not you? Close this page.</p>
+  {% block confirm_extra %}{% endblock %}
   <form method="post">
     {% csrf_token %}
     {% if action.reasons %}

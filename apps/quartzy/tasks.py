@@ -25,14 +25,15 @@ chunks too. Its runs show on the health panel, and never ping the heartbeat.
 
 import hashlib
 import logging
-from datetime import datetime, time, timedelta
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import timedelta
 
 import httpx
 from django.conf import settings
 from django.utils import timezone
 from django_q.tasks import async_task
 
+from apps.core import schedules
+from apps.core.mail import notify_admins
 from apps.core.models import Lab
 from apps.core.policies import get_policy
 
@@ -154,7 +155,7 @@ def head_due(qlab, now=None):
     now = now or timezone.now()
     lab = qlab.lab
     start, end = get_policy("sync.lab_hours", lab)
-    hour = now.astimezone(_zone(lab.time_zone)).hour
+    hour = schedules.local_now(lab, now).hour
     in_hours = start <= hour < end if start <= end else (hour >= start or hour < end)
     key = (
         "sync.head_interval_lab_hours_minutes"
@@ -174,13 +175,6 @@ def head_due(qlab, now=None):
 
 def _active(qlab_id):
     return QuartzyLab.objects.select_related("lab").filter(pk=qlab_id, is_active=True).first()
-
-
-def _zone(name):
-    try:
-        return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError):
-        return ZoneInfo("UTC")
 
 
 def _sync_job(kind, qlab, work):
@@ -214,7 +208,7 @@ def _sync_job(kind, qlab, work):
 
 
 def _report_refused_token(kind, qlab, exc):
-    sync.notify_admins(
+    notify_admins(
         qlab.lab,
         title=f"Quartzy refused the token ({qlab})",
         message=(
@@ -276,7 +270,7 @@ def spec_diff():
     logger.warning("Quartzy's API spec changed: %s → %s", known[:12], digest[:12])
     labs = Lab.objects.filter(quartzy_labs__is_active=True).distinct() or Lab.objects.all()
     for lab in labs:
-        sync.notify_admins(
+        notify_admins(
             lab, title="Quartzy's API spec changed", message=message, subject_obj=snapshot
         )
     return "changed"
@@ -286,9 +280,9 @@ def spec_diff():
 # Schedules
 
 
-def ensure_schedules():
-    """Create or update the Django-Q2 schedules, and remove ours that no longer apply (labs
-    made inactive). Idempotent. Returns (created, updated, removed)."""
+def wanted_schedules():
+    """The ``quartzy.`` schedules (see apps.core.schedules): heartbeat and spec diff once,
+    then head, sweep, hot and nightly per active Quartzy lab."""
     from django_q.models import Schedule
 
     wanted = {
@@ -303,7 +297,6 @@ def ensure_schedules():
             "minutes": None,
         },
     }
-    first_runs = {}
     for qlab in QuartzyLab.objects.active().select_related("lab"):
         for job, minutes in (("head", 2), ("sweep", 5), ("hot", 15)):
             wanted[f"quartzy.{job}.{qlab.pk}"] = {
@@ -312,38 +305,18 @@ def ensure_schedules():
                 "schedule_type": Schedule.MINUTES,
                 "minutes": minutes,
             }
-        name = f"quartzy.nightly.{qlab.pk}"
-        wanted[name] = {
+        wanted[f"quartzy.nightly.{qlab.pk}"] = {
             "func": "apps.quartzy.tasks.run_nightly",
             "args": str(qlab.pk),
             "schedule_type": Schedule.DAILY,
             "minutes": None,
+            "first_run": schedules.next_local(qlab.lab, NIGHTLY_HOUR),
         }
-        first_runs[name] = _next_local(qlab.lab, NIGHTLY_HOUR)
-
-    created = updated = 0
-    for name, values in wanted.items():
-        values = {"args": None, "repeats": -1, **values}
-        schedule = Schedule.objects.filter(name=name).order_by("pk").first()
-        if schedule is None:
-            next_run = first_runs.get(name, timezone.now())
-            Schedule.objects.create(name=name, next_run=next_run, **values)
-            created += 1
-            continue
-        changed = [field for field, value in values.items() if getattr(schedule, field) != value]
-        if changed:
-            for field in changed:
-                setattr(schedule, field, values[field])
-            schedule.save(update_fields=changed)
-            updated += 1
-    removed, _ = (
-        Schedule.objects.filter(name__startswith=SCHEDULE_PREFIX).exclude(name__in=wanted).delete()
-    )
-    return created, updated, removed
+    return wanted
 
 
-def _next_local(lab, hour):
-    zone = _zone(lab.time_zone)
-    now = timezone.now().astimezone(zone)
-    moment = datetime.combine(now.date(), time(hour), tzinfo=zone)
-    return moment if moment > now else moment + timedelta(days=1)
+def ensure_schedules():
+    """Create or update the Quartzy schedules, and remove ours that no longer apply (labs
+    made inactive). Idempotent. Returns (created, updated, removed). ``setup_schedules`` runs
+    every app's schedules (apps.core.schedules.ensure_all); the backfill runs just these."""
+    return schedules.sync_prefix(SCHEDULE_PREFIX, wanted_schedules())

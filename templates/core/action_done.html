@@ -7,6 +7,7 @@
   {% else %}
     <h1>Thanks — recorded</h1>
     <p>{{ action.label }}.</p>
+    {% block done_extra %}{% endblock %}
   {% endif %}
 </section>
 {% endblock %}

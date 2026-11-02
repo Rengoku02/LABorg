@@ -8,6 +8,11 @@ Other apps register what an action does::
 
     @register_action(Notification.Kind.DUPLICATE_ALERT, "borrow", label="Borrow instead")
     def borrow(notification, request, data): ...
+
+An action may bring its own pages: ``confirm_template`` (extending
+``core/action_confirm.html``) with ``confirm_context(notification)`` for what it shows (a link
+to the request in Quartzy, the Lab Admin's name), and ``done_template`` for the page after the
+POST. ``confirm_context`` runs on GET, so it must only read.
 """
 
 from dataclasses import dataclass
@@ -32,17 +37,44 @@ class Action:
     handler: object
     # Optional choices shown as a pick-list on the confirm page (e.g. "need my own" reasons).
     reasons: tuple = ()
+    confirm_template: str = "core/action_confirm.html"
+    # callable(notification) -> dict for the confirm page; read-only (it runs on GET).
+    confirm_context: object = None
+    done_template: str = "core/action_done.html"
 
 
 _REGISTRY: dict[tuple[str, str], Action] = {}
 
 
-def register_action(kind, name, *, label, reasons=()):
+def register_action(
+    kind,
+    name,
+    *,
+    label,
+    reasons=(),
+    confirm_template=None,
+    confirm_context=None,
+    done_template=None,
+):
     def decorator(func):
-        _REGISTRY[(str(kind), name)] = Action(str(kind), name, label, func, tuple(reasons))
+        _REGISTRY[(str(kind), name)] = Action(
+            str(kind),
+            name,
+            label,
+            func,
+            tuple(reasons),
+            confirm_template or "core/action_confirm.html",
+            confirm_context,
+            done_template or "core/action_done.html",
+        )
         return func
 
     return decorator
+
+
+def actions_for(kind):
+    """The actions registered for ``kind``, in registration order."""
+    return [action for (k, _name), action in _REGISTRY.items() if k == str(kind)]
 
 
 def get_action(kind, name):

@@ -197,17 +197,22 @@ class _Batch:
         self.load_holders(lab_id, [person.pk])
         return not self._current[(lab_id, person.pk)]
 
+    def load_stewards(self, lab_id, product_ids):
+        """Read in one query the stewards of these products in the lab (LabProduct)."""
+        missing = {pk for pk in product_ids if (lab_id, pk) not in self._stewards}
+        if not missing:
+            return
+        rows = (
+            LabProduct.objects.filter(lab_id=lab_id, product_id__in=missing)
+            .exclude(steward=None)
+            .select_related("steward")
+        )
+        found = {row.product_id: row.steward for row in rows}
+        self._stewards.update({(lab_id, pk): found.get(pk) for pk in missing})
+
     def steward(self, lab_id, product_id):
-        key = (lab_id, product_id)
-        if key not in self._stewards:
-            row = (
-                LabProduct.objects.filter(lab_id=lab_id, product_id=product_id)
-                .exclude(steward=None)
-                .select_related("steward")
-                .first()
-            )
-            self._stewards[key] = row.steward if row else None
-        return self._stewards[key]
+        self.load_stewards(lab_id, [product_id])
+        return self._stewards[(lab_id, product_id)]
 
     def tag_labels(self, keys):
         missing = [key for key in keys if key not in self._tags]
@@ -288,11 +293,24 @@ def present_items(items, viewer, *, channel, listed_in=None):
     too, since the list would tell where they are."""
     batch = _Batch(viewer, channel)
     items = _visible(list(items), batch, lambda item: item.custodian_id)
+    _load_stewards(items, batch)
     chains = ancestor_chains({item.location_id: item.location for item in items}.values())
     views = [
         _item_view(item, batch.access(item), chains[item.location_id], batch) for item in items
     ]
     return _listed(views, listed_in)
+
+
+def _load_stewards(items, batch):
+    """Stewards are asked about lab stock and the stock of people who have left: read them
+    for all such items at once (the memberships are loaded already)."""
+    by_lab = {}
+    for item in items:
+        custodian = item.custodian
+        if custodian.kind == User.Kind.POOL or batch.has_left(item.lab_id, custodian):
+            by_lab.setdefault(item.lab_id, set()).add(item.product_id)
+    for lab_id, product_ids in by_lab.items():
+        batch.load_stewards(lab_id, product_ids)
 
 
 def _ask(item, custodian, batch):

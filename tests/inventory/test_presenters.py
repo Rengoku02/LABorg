@@ -17,7 +17,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from apps.catalog.models import LabProduct, Lot
+from apps.catalog.models import LabProduct, Lot, Product
 from apps.core.models import Membership
 from apps.inventory import services
 from apps.inventory.models import Location, StockItem
@@ -403,6 +403,30 @@ def test_selector_rows_are_presented_without_a_query_per_item(make_item, raj, la
         make_item(location=None, temperature="-20C")
     many, views = queries_for(present)
     assert len(views) == 10 and many == few
+
+
+@pytest.mark.django_db
+def test_stewards_are_read_once_for_lab_stock_of_many_products(
+    make_item, raj, lab, pool, antibody_type
+):
+    """Lab stock asks the product's steward: one query for all products, not one each."""
+
+    def present():
+        return present_items(stock_held_by(pool, lab=lab), raj, channel="page")
+
+    def stock_of_new_product(number):
+        product = Product.objects.create(name=f"Product {number}", item_type=antibody_type)
+        LabProduct.objects.create(lab=lab, product=product, steward=raj if number % 2 else None)
+        make_item(product=product, custodian=pool, location=None, temperature="4C")
+
+    stock_of_new_product(1)
+    few, views = queries_for(present)
+    for number in range(2, 21):
+        stock_of_new_product(number)
+    many, views = queries_for(present)
+    assert len(views) == 20 and many == few
+    asked = {view.product_name: view.ask_name for view in views}
+    assert asked["Product 1"] == "Raj Rao" and asked["Product 2"] == "the lab's co-owner"
 
 
 @pytest.mark.django_db

@@ -98,3 +98,33 @@ def test_token_for_other_recipient_rejected(notification, make_member):
 def test_confirm_template_has_no_htmx_or_scripts():
     source = Path("templates/core/action_confirm.html").read_text()
     assert "hx-" not in source and "<script" not in source
+
+
+@actions.register_action(
+    Notification.Kind.SYSTEM,
+    "peek",
+    label="Open in Quartzy",
+    confirm_context=lambda notification: {"quartzy_link": f"q/{notification.pk}"},
+)
+def _peek(notification, request, data):
+    return {"peeked": True}
+
+
+@pytest.mark.django_db
+def test_an_action_can_add_to_its_confirm_page_without_acting(client, notification):
+    url = _path(actions.action_url(notification, "peek"))
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["quartzy_link"] == f"q/{notification.pk}"
+    assert response.templates[0].name == "core/action_confirm.html"
+    notification.refresh_from_db()
+    assert notification.acted_at is None
+    done = client.post(url)
+    assert done.templates[0].name == "core/action_done.html"
+    notification.refresh_from_db()
+    assert notification.action_detail == {"peeked": True}
+
+
+def test_actions_for_lists_a_kinds_actions_in_order():
+    names = [action.name for action in actions.actions_for(Notification.Kind.SYSTEM)]
+    assert names[:2] == ["ack", "keep"] and "peek" in names

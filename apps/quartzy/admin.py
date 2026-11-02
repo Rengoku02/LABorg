@@ -6,7 +6,6 @@ hot set.
 """
 
 import json
-from datetime import timedelta
 
 from django.contrib import admin, messages
 from django.db.models import Count
@@ -24,6 +23,7 @@ from .models import (
     SyncError,
     SyncRun,
 )
+from .services import WATCH_DAYS, watch_requests
 
 
 def _pretty(data):
@@ -172,9 +172,10 @@ class OrderRequestAdmin(admin.ModelAdmin):
 
     @admin.action(description="Watch: re-read by id (hot set) for 7 days")
     def watch(self, request, queryset):
-        until = timezone.now() + timedelta(days=7)
-        watched = queryset.exclude(quartzy_id=None).update(hot_until=until)
-        self.message_user(request, f"Watching {watched} request(s) for 7 days.", messages.SUCCESS)
+        watched = watch_requests(queryset, days=WATCH_DAYS)
+        self.message_user(
+            request, f"Watching {watched} request(s) for {WATCH_DAYS} days.", messages.SUCCESS
+        )
 
 
 class SyncErrorInline(ReadOnlyInline):

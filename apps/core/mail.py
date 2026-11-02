@@ -2,10 +2,17 @@
 
 ``queue_notification`` creates the Notification row (its unique constraint is the
 idempotency key) and enqueues the send only after the surrounding transaction commits.
-``send_notification`` locks the row, re-checks that it hasn't been sent, then sends.
+``send_notification`` locks the row, re-checks that it hasn't been sent, runs the send checks
+of its kind, then sends.
+
+Send checks (``register_send_check``) run at send time, so a kill switch or a budget turned
+on while mail is queued still applies. A check returns None to let the mail go, a reason
+string to hold it (a person can release it later), or ``Suppressed(reason)`` to drop it for
+good (status SUPPRESSED). The first check that objects decides.
 """
 
 import logging
+from dataclasses import dataclass
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -14,7 +21,7 @@ from django.db import IntegrityError, transaction
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from .models import Notification
+from .models import Membership, Notification, User
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +35,16 @@ ALERT_KINDS = {
 
 # kind -> callable(notification) returning extra template context.
 _CONTEXT_BUILDERS = {}
-# kind -> callable(notification) returning None to send, or a reason string to hold.
+# kind -> [callable(notification) returning None to send, a reason string to hold, or
+# Suppressed(reason) to drop the mail].
 _SEND_CHECKS = {}
+
+
+@dataclass(frozen=True)
+class Suppressed:
+    """What a send check returns to drop a mail for good (e.g. over the email budget)."""
+
+    reason: str
 
 
 def register_context_builder(kind):
@@ -40,12 +55,31 @@ def register_context_builder(kind):
     return decorator
 
 
-def register_send_check(kind):
+def register_send_check(*kinds):
+    """Register a send check for one or more kinds. Checks run in registration order; a
+    function registered twice for a kind runs once."""
+
     def decorator(func):
-        _SEND_CHECKS[str(kind)] = func
+        for kind in kinds:
+            checks = _SEND_CHECKS.setdefault(str(kind), [])
+            if func not in checks:
+                checks.append(func)
         return func
 
     return decorator
+
+
+def send_checks(kind):
+    return list(_SEND_CHECKS.get(str(kind), ()))
+
+
+def _check(notification):
+    """The first objection of the kind's send checks: None, a hold reason or Suppressed."""
+    for check in _SEND_CHECKS.get(notification.kind, ()):
+        verdict = check(notification)
+        if verdict:
+            return verdict
+    return None
 
 
 def queue_notification(
@@ -142,11 +176,15 @@ def send_notification(notification_id):
             return "missing"
         if notification.sent_at or notification.status != Notification.Status.PENDING:
             return "skipped"
-        check = _SEND_CHECKS.get(notification.kind)
-        hold_reason = check(notification) if check else None
-        if hold_reason:
+        verdict = _check(notification)
+        if isinstance(verdict, Suppressed):
+            notification.status = Notification.Status.SUPPRESSED
+            notification.hold_reason = verdict.reason[:200]
+            notification.save(update_fields=["status", "hold_reason"])
+            return "suppressed"
+        if verdict:
             notification.status = Notification.Status.HELD
-            notification.hold_reason = hold_reason[:200]
+            notification.hold_reason = str(verdict)[:200]
             notification.save(update_fields=["status", "hold_reason"])
             return "held"
         try:
@@ -164,3 +202,26 @@ def send_notification(notification_id):
         notification.status = Notification.Status.SENT
         notification.save(update_fields=["esp_message_id", "sent_at", "status"])
         return "sent"
+
+
+def notify_admins(lab, *, title, message, subject_obj, period_key=""):
+    """Queue a SYSTEM email to the lab's system owners and to superusers."""
+    from django.db.models import Q
+
+    admins = (
+        User.objects.filter(is_active=True, email__isnull=False)
+        .filter(
+            Q(is_superuser=True) | Q(memberships__lab=lab, memberships__role=Membership.Role.ADMIN)
+        )
+        .distinct()
+    )
+    for admin in admins:
+        queue_notification(
+            lab=lab,
+            kind=Notification.Kind.SYSTEM,
+            subject_obj=subject_obj,
+            recipient_email=admin.email,
+            recipient=admin,
+            period_key=period_key,
+            context={"title": title, "message": message},
+        )

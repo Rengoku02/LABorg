@@ -1,5 +1,5 @@
-email,full_name,role,status,start_date,end_date,quartzy_lab_admin
-pi@example.edu,Pat Investigator,pi,active,2015-09-01,,yes
-manager@example.edu,Morgan Manager,co_owner,active,2018-01-15,,yes
-priya@example.edu,Priya Patel,member,active,2023-09-01,,no
-rotor@example.edu,Robin Rotator,member,rotator,2026-10-01,2026-12-20,no
+email,full_name,role,status,start_date,end_date,quartzy_lab_admin,champion
+pi@example.edu,Pat Investigator,pi,active,2015-09-01,,yes,no
+manager@example.edu,Morgan Manager,co_owner,active,2018-01-15,,yes,no
+priya@example.edu,Priya Patel,member,active,2023-09-01,,no,yes
+rotor@example.edu,Robin Rotator,member,rotator,2026-10-01,2026-12-20,no,no
