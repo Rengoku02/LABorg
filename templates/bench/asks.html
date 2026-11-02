@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Asks · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Ask the lab</h1>
+  {% if can_ask %}
+  <form method="post" action="{% url 'bench:ask_lab' %}">
+    {% csrf_token %}
+    <label for="ask-text">What are you looking for?</label>
+    <input id="ask-text" name="text" maxlength="300" placeholder="Does anyone have DAPI?">
+    <label class="check"><input type="checkbox" name="urgent"> Urgent (send now, not with the next batch)</label>
+    <button type="submit" class="primary">Ask everyone</button>
+  </form>
+  <p class="meta">One lab-wide ask a day; people get at most one ask email a day, sent at the next batch time.</p>
+  {% else %}
+  <p>You've asked the whole lab today. Ask a holder directly from the search results, or try tomorrow.</p>
+  {% endif %}
+</section>
+{% if to_me %}<section class="card"><p>{{ to_me }} ask{{ to_me|pluralize }} in your email wait{{ to_me|pluralize:"s," }} for your answer.</p></section>{% endif %}
+<section class="card">
+  <h2>My asks</h2>
+  {% if ask_rows %}
+  <ul class="rows">
+    {% for row in ask_rows %}
+    <li>{{ row.what|default:"(no description)" }} <span class="meta">{{ row.kind }} · {{ row.at|date:"Y-m-d" }}{% for who, answer in row.replies %} · {{ who }}: {{ answer }}{% empty %} · no replies yet{% endfor %}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="meta">You haven't asked anything yet.</p>{% endif %}
+</section>
+{% endblock %}

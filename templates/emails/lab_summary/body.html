@@ -1,0 +1,11 @@
+{% extends "emails/base.html" %}{% block body %}<p>The lab's week ({{ period.label }}), lab totals only:</p>
+<ul>
+<li>Requests made: {{ requests }}; checked by the duplicate guard: {{ checked }}</li>
+<li>Duplicates caught: {{ caught }}</li>
+<li>Purchases avoided (verified): {{ avoided_count }}, worth ${{ avoided_amount|floatformat:0 }}</li>
+<li>Borrowed instead of bought: {{ borrowed }}</li>
+<li>Stock items added to LabStock: {{ stock_added }}</li>
+</ul>
+{% if caught_views %}<p>Caught this week:</p><ul>{% for request_view in caught_views %}<li>{{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }})</li>{% endfor %}</ul>{% endif %}
+{% if lenders %}<p>Thanks to {{ lenders|join:", " }} for lending.</p>{% endif %}
+<p><a href="{{ dashboard_url }}">Dashboard</a></p>{% endblock %}{% block footer %}<br>Counts of 1 or 2 show as "&lt;3". LabStock never reports a person's searches or answers.{% endblock %}

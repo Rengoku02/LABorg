@@ -1,0 +1,4 @@
+{% extends "emails/base.html" %}{% block body %}<p>Hi {{ notification.recipient.get_short_name }},</p>
+<p>You requested <strong>{{ request_view.item_name }}</strong> ({{ request_view.vendor }} {{ request_view.catalog_number }}) on {{ request_view.requested_at|date:"Y-m-d" }}, and Quartzy still shows it as {{ request_view.status_label|lower }}.</p>
+<p>{% for label, url in answer_links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p style="color:#57606a;">If it arrived, please mark it Received in Quartzy too, so the lab knows.</p>{% endblock %}

@@ -15,6 +15,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("quartzy/", include("apps.quartzy.urls")),
     path("guard/", include("apps.guard.urls")),
+    path("reports/", include("apps.reports.urls")),
     path("", include("apps.core.urls")),
     path("", include("apps.bench.urls")),
 ]

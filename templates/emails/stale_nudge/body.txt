@@ -1,0 +1,7 @@
+{% extends "emails/base.txt" %}{% block body %}Hi {{ notification.recipient.get_short_name }},
+
+You requested {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}) on {{ request_view.requested_at|date:"Y-m-d" }}, and Quartzy still shows it as {{ request_view.status_label|lower }}.
+
+{% for label, url in answer_links %}  - {{ label }}: {{ url }}
+{% endfor %}
+If it arrived, please mark it Received in Quartzy too, so the lab knows.{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "emails/base.txt" %}{% block body %}Hi {{ notification.recipient.get_short_name }},
+
+{{ asker_name }} is looking for: {{ what }}
+
+If you have some to spare, reply to this email to arrange it, or answer with one tap:
+{% for label, url in answer_links %}  - {{ label }}: {{ url }}
+{% endfor %}{% endblock %}{% block footer %}You get at most one of these a day.{% endblock %}

@@ -76,3 +76,12 @@ def test_log_filter_redacts_action_tokens():
     )
     RedactActionTokens().filter(record)
     assert record.getMessage() == "GET /a/[redacted]/ack/ 200"
+
+
+def test_logs_never_hold_tokens_or_searches():
+    import logging
+
+    paths = ("/a/TOKEN/cancel/", "/claims/t/T/", "/s?q=my+secret")
+    record = logging.LogRecord("x", logging.INFO, __file__, 1, "%s %s %s", paths, None)
+    RedactActionTokens().filter(record)
+    assert record.getMessage() == "/a/[redacted]/cancel/ /claims/t/[redacted]/ /s?[redacted]"

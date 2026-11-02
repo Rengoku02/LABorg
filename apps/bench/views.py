@@ -40,6 +40,7 @@ from apps.inventory.selectors import (
     resolve_code,
     stock_held_by,
 )
+from apps.reports.views import may_see_dashboard
 
 from .forms import AddForm, BoxForm, ClaimForm, ShareForm
 
@@ -93,6 +94,7 @@ def home_context(request):
         "held": stock_held_by(user, lab=lab).count(),
         "can_label": can_label_matches(user, lab),
         "is_champion": is_champion(user, lab),
+        "can_see_dashboard": may_see_dashboard(user, lab),
     }
 
 

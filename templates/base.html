@@ -6,6 +6,7 @@
   <meta name="htmx-config" content='{{ htmx_config }}'>
   <title>{% block title %}LabStock{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="LabStock">
   <script src="{% static 'vendor/htmx-2.0.11.min.js' %}" nonce="{{ csp_nonce }}"
           integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg"></script>
   {% block head %}{% endblock %}
@@ -17,6 +18,8 @@
     <nav>
       {% if user.is_authenticated %}
         {% if current_lab %}
+        <a href="{% url 'bench:search' %}">Search</a>
+        <a href="{% url 'bench:board' %}">On order</a>
         <a href="{% url 'bench:my_stock' %}">My stock</a>
         <a href="{% url 'bench:claims' %}">Claims</a>
         <a href="{% url 'bench:add' %}">Add</a>

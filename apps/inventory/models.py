@@ -18,6 +18,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from functools import cache
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import IntegrityError, models, transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -1033,6 +1034,8 @@ class AskThread(models.Model):
         blank=True,
         related_name="ask_threads",
     )
+    # The asker's own words for "ask the lab" ("Does anyone have DAPI?").
+    text = models.CharField(max_length=300, blank=True)
     urgent = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     closed_at = models.DateTimeField(null=True, blank=True)
@@ -1071,3 +1074,31 @@ class AskReply(models.Model):
 
     def __str__(self):
         return f"{self.responder}: {self.get_answer_display()}"
+
+
+class SearchLog(models.Model):
+    """That someone searched, and for which product: only to tell, in aggregate, whether
+    people search before they buy (plan §11). Never the text typed. Deleted after
+    ``search.log_retention_days``."""
+
+    class Kind(models.TextChoices):
+        URL = "url", "Pasted a vendor URL"
+        CATALOG = "catalog", "Catalog #"
+        NAME = "name", "Name"
+
+    lab = models.ForeignKey("core.Lab", on_delete=models.CASCADE, related_name="+")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+    at = models.DateTimeField(default=timezone.now)
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    vendor_family = models.CharField(max_length=60, blank=True)
+    catalog_key = models.CharField(max_length=100, blank=True)
+    product_ids = ArrayField(models.BigIntegerField(), default=list, blank=True)
+    in_lab = models.PositiveIntegerField(default=0)
+    on_order = models.PositiveIntegerField(default=0)
+    bought_before = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        indexes = [models.Index(fields=["lab", "user", "at"], name="inv_searchlog_user_at")]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} search ({self.at:%Y-%m-%d})"

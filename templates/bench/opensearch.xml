@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>LabStock</ShortName>
+  <Description>Check the lab's stock before you buy</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Url type="text/html" method="get" template="{{ site_url }}/s?q={searchTerms}"/>
+</OpenSearchDescription>

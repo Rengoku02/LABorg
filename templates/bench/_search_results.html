@@ -1,0 +1,68 @@
+{% if result_view %}
+{% if not result_view.found_anything and not result_view.boxes %}
+<section class="card">
+  <p>Nothing in the lab, on order, or bought recently{% if result_view.catalog_raw %} for {{ result_view.catalog_raw }}{% endif %}.</p>
+  <form method="post" action="{% url 'bench:ask_lab' %}">
+    {% csrf_token %}
+    <input type="hidden" name="text" value="{{ q }}">
+    <button type="submit">Ask the lab</button>
+  </form>
+</section>
+{% endif %}
+{% if result_view.in_lab %}
+<section class="card">
+  <h2>In the lab</h2>
+  <ul class="rows">
+    {% for item_view in result_view.in_lab %}
+    <li><a href="{{ item_view.url }}">{{ item_view.product_name }}</a>
+      <span class="meta">{{ item_view.vendor }} {{ item_view.catalog_number }} · {{ item_view.custodian_name }}{% if item_view.redacted %} · {{ item_view.ask_text }}{% else %} · {{ item_view.location_path|default:item_view.location_name }}{% if item_view.position %} {{ item_view.position }}{% endif %} · {{ item_view.visibility_label }}{% endif %}</span>
+      {% if not item_view.viewer_is_custodian %}
+      <form class="inline" method="post" action="{% url 'bench:ask_owner' item_view.short_id %}">{% csrf_token %}<button type="submit" class="link">{{ item_view.ask_text|default:"Ask to borrow" }}</button></form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if result_view.probably %}
+<section class="card">
+  <h2>Probably in the lab</h2>
+  <ul class="rows">
+    {% for item_view in result_view.probably %}
+    <li><a href="{{ item_view.url }}">{{ item_view.product_name }}</a>
+      <span class="meta">{{ item_view.unverified_text }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if result_view.on_order %}
+<section class="card">
+  <h2>On order</h2>
+  <ul class="rows">
+    {% for request_view in result_view.on_order %}
+    <li>{{ request_view.item_name }} <span class="meta">{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ request_view.requester_name }} · {{ request_view.requested_at|date:"Y-m-d" }} · {{ request_view.status_label }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if result_view.bought_before %}
+<section class="card">
+  <h2>Bought before</h2>
+  <ul class="rows">
+    {% for request_view in result_view.bought_before %}
+    <li>{{ request_view.item_name }} <span class="meta">{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ request_view.requester_name }} · {{ request_view.requested_at|date:"Y-m-d" }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% if result_view.boxes %}
+<section class="card">
+  <h2>Boxes</h2>
+  <ul class="rows">
+    {% for box_view in result_view.boxes %}
+    <li><a href="{{ box_view.url }}">{{ box_view.name }}</a> <span class="meta">{{ box_view.custodian_name }}{% if not box_view.redacted %} · {{ box_view.parent_path }}{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endif %}

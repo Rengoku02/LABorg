@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Search from anywhere · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Search LabStock from anywhere</h1>
+  <h2>From the address bar</h2>
+  <p>Add a search shortcut with the keyword <code>ls</code>, then type <code>ls 2118S</code> in the address bar.</p>
+  <ul>
+    <li><strong>Chrome / Edge:</strong> Settings → Search engine → Manage search engines → Add. Name: LabStock, shortcut: <code>ls</code>, URL: <code>{{ search_url }}</code></li>
+    <li><strong>Firefox:</strong> right-click the search box on <a href="{% url 'bench:search' %}">the search page</a> → "Add a Keyword for this Search…", keyword <code>ls</code>.</li>
+    <li><strong>Safari:</strong> has no custom keywords; use the bookmark below.</li>
+  </ul>
+  <h2>From a vendor's product page</h2>
+  <p>Drag this link to your bookmarks bar. On any product page, click it (or select a catalog # first) to check LabStock:</p>
+  <p><a class="button" href="{{ bookmarklet }}">Check LabStock</a></p>
+  <p class="meta">It only opens LabStock's search with the page address or your selection; it reads nothing else.</p>
+</section>
+{% endblock %}

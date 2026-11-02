@@ -10,10 +10,11 @@ shadow have passed. Re-running skips requests already replayed with this matcher
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from apps.core.dates import months_before
 from apps.quartzy.models import OrderRequest
 
 from .checks import check_request
-from .matcher import MATCHER_VERSION, months_before
+from .matcher import MATCHER_VERSION
 from .models import CheckRun, DuplicateCheck
 
 

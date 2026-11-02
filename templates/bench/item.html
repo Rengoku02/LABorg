@@ -25,6 +25,11 @@
     {% endif %}
   </dl>
   {% if item_view.ask_text %}<p class="ask">{{ item_view.ask_text }} before taking any.</p>{% endif %}
+  {% if not item_view.viewer_is_custodian and item_view.is_active %}
+  <form method="post" action="{% url 'bench:ask_owner' item_view.short_id %}">
+    {% csrf_token %}<button type="submit">Ask to borrow some</button>
+  </form>
+  {% endif %}
 </section>
 {% if share_form %}
 <section class="card">

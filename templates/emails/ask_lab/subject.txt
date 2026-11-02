@@ -1,0 +1,1 @@
+{% autoescape off %}{% if urgent %}[Urgent] {% endif %}{{ asker_name }} asks the lab: {{ what|truncatechars:70 }}{% endautoescape %}

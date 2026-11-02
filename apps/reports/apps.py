@@ -6,3 +6,10 @@ class ReportsConfig(AppConfig):
     name = "apps.reports"
     label = "reports"
     verbose_name = "Reports"
+
+    def ready(self):
+        from apps.core import schedules
+
+        from . import budget, digests, nudges, tasks  # noqa: F401  (they register hooks)
+
+        schedules.register(tasks.SCHEDULE_PREFIX, tasks.wanted_schedules)

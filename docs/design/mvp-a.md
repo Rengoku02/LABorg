@@ -837,3 +837,70 @@ empty stubs to fill in. `settings.LABSTOCK_MAX_PHOTO_BYTES` caps lid photos (10 
 | `guard.include_same_requester` | `False` | matcher |
 | `guard.need_own_suppress_days` | `30` | suppression |
 | `guard.not_same_suppress_days` | `180` | suppression |
+
+## 10. Step 8: search, asks, board, nudges, digests, dashboard
+
+Same conventions as §0. Every page and email shows stock through `apps.inventory.presenters`
+and requests through `apps.quartzy.presenters`; PI-facing text goes through `NameScrubber`.
+
+**10.1 Vendor URLs** (`apps/catalog/vendor_urls.py`, pure Python, for v1's extension too):
+`parse_vendor_url(text) -> VendorURL(family, catalog_raw, words) | None`. Thermo, Fisher,
+Sigma/Merck, CST, Abcam, NEB, ATCC, IDT, Qiagen, VWR, plus Promega, Bio-Rad and R&D Systems.
+`catalog_raw` is None when the URL names no number (IDT's pages); `words` comes from the slug.
+
+**10.2 Search** (`apps/inventory/search.py`, model `SearchLog`):
+- `search(lab, viewer, q, *, log=True) -> SearchResult(query_kind, products, in_lab, probably,
+  on_order, bought_before, boxes)`. A pasted URL goes through `parse_vendor_url`; a
+  catalog-like query matches catalog keys (and bases, manufacturer keys, cross-family keys
+  long enough for T1x); anything else matches product names (trigram), LabProduct synonyms,
+  and box names and tags.
+- Groups: *In the lab* (active stock, shared first, through the presenter; restricted rows say
+  whom to ask), *Probably: ask X* (unverified stock), *On order* (open requests), *Bought
+  before* (not cancelled, within `search.bought_before_months`), *Boxes*.
+- `SearchLog`: lab, user, at, kind (`url` / `catalog` / `name`), vendor family, catalog key,
+  product ids, result counts; never the raw text. `purge_search_logs()` deletes rows older
+  than `search.log_retention_days` (daily). `searched_before(order_request)`: did the
+  requester search for this product within `search.searched_before_days` before the request?
+  The check stores it in `DuplicateCheck.searched_before`.
+- Pages: `/s?q=` (`/s/results` is the htmx partial), `/s/setup/` (address-bar keyword and
+  bookmarklet), `/opensearch.xml`. Caddy keeps `/s` query strings out of its logs.
+
+**10.3 Asks** (`apps/inventory/asks.py`): `ask_owner` (§8), and
+`ask_lab(*, lab, asker, product=None, text="", urgent=False)`: one `ask_lab` email per
+current member (not the asker) with *I have it* / *Maybe* / *No* and Reply-To the asker.
+- Asker side: `AskLimit` once the asker started `asks.max_per_person_per_day` lab-wide asks
+  today (lab time).
+- Recipient side: held asks (`hold_reason="ask_batch"`) go out at `asks.batch_hours`, at most
+  one per recipient per day; an urgent ask goes out at once but counts toward the day.
+- Pages: POST `/asks/owner/<short_id>`, POST `/asks/lab/`, GET `/asks/` (my asks and replies).
+
+**10.4 In-flight board** (`/board/`): the lab's open requests grouped by product, in three
+sections: not marked ordered (CREATED/APPROVED), ordered (ORDERED/BACKORDERED), probably
+arrived (open longer than `guard.open_probably_arrived_days`).
+
+**10.5 Nudges** (`apps/reports/nudges.py`, daily from 09:00 lab time): one `stale_nudge` per
+Quartzy request still open `nudges.stale_days` after it was made, never for requests before
+alerts were armed. Actions: *It arrived* and *Never ordered: cancel* (both watch the request),
+*Still waiting*.
+
+**10.6 Personal digest** (`apps/reports/digests.py`, Monday from 08:00 lab time, kind
+`personal_digest`, period = ISO week), sent only when it has content: late detections
+(post-order wording), unanswered alerts, replies to my asks, asks waiting for me, pending
+claims, my open nudged requests. Ids in the stored context; views built at send time.
+
+**10.7 PI lab summary** (`lab_summary`, Monday from 08:30, to PIs and co-owners): lab totals
+only, numbers under 3 shown as "<3", item text through `NameScrubber`; lenders named only with
+`Membership.thank_by_name`.
+
+**10.8 Dashboard** (`apps/reports/metrics.py`, `/reports/`): for the PI, co-owners and system
+owners (`reports.dashboard_audience` = "members" opens it to every member). Metrics over a
+date range, never per person: duplicate $ found by the replay (upper bound and reviewed, this
+quarter vs the same quarter last year), verified $ avoided, alert-in-time rate,
+search-before-buy rate, coverage (claims answered, boxes with an owner per freezer), asks that
+ended in a borrow, per-tier precision, uncheckable share.
+
+**10.9 Email budget** (`apps/reports/budget.py`): send checks on `ask_lab` and `claims`
+return `Suppressed("budget")` once the recipient had `email.max_non_alert_per_week` non-alert
+emails in the last 7 days. The personal digest is never suppressed (it consolidates what
+didn't go out) but counts. Exempt and not counted: `duplicate_alert`, `clear_to_order`,
+`ask_owner`, `stale_nudge`, `system`, `lab_summary`.

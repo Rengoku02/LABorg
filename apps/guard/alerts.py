@@ -353,7 +353,7 @@ def _alert_context(notification):
         "item_view": item_view,
         "other_view": other_view,
         "subject_line": subject_line(match.candidate_kind, item_view, other_view),
-        "search_url": f"{settings.SITE_URL}/",
+        "search_url": f"{settings.SITE_URL}{reverse('bench:search_setup')}",
         "mine_url": f"{settings.SITE_URL}{reverse('guard:mine')}",
     }
     if role == EARLIER:

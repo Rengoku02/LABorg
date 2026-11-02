@@ -1,0 +1,18 @@
+{% extends "emails/base.txt" %}{% block body %}Hi {{ notification.recipient.get_short_name }},
+{% if late_views %}
+Found after you'd ordered (nothing to do unless you can still cancel):
+{% for request_view in late_views %}  - {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }})
+{% endfor %}{% endif %}{% if unanswered_views %}
+Duplicate alerts you haven't answered ({{ links.alerts }}):
+{% for request_view in unanswered_views %}  - {{ request_view.item_name }}
+{% endfor %}{% endif %}{% if reply_rows %}
+Replies to your asks:
+{% for who, answer, what in reply_rows %}  - {{ who }}: {{ answer }} ({{ what }})
+{% endfor %}{% endif %}{% if notification.context.asks_waiting %}
+{{ notification.context.asks_waiting }} ask{{ notification.context.asks_waiting|pluralize }} from colleagues wait{{ notification.context.asks_waiting|pluralize:"s," }} for your answer in your email.
+{% endif %}{% if notification.context.claims %}
+{{ notification.context.claims }} past purchase{{ notification.context.claims|pluralize }} to sort: {{ links.claims }}
+{% endif %}{% if still_open_views %}
+Still open in Quartzy after a nudge:
+{% for request_view in still_open_views %}  - {{ request_view.item_name }} ({{ request_view.status_label }})
+{% endfor %}{% endif %}{% endblock %}{% block footer %}A weekly digest, sent only when something is waiting for you.{% endblock %}

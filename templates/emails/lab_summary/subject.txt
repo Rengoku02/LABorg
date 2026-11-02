@@ -1,0 +1,1 @@
+{% autoescape off %}[LabStock] The lab's week: {{ caught }} duplicate{{ caught|pluralize }} caught{% endautoescape %}

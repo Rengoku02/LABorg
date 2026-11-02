@@ -26,3 +26,4 @@
 .error { color: var(--bad); }
 textarea { font: inherit; width: 100%; max-width: 480px; min-height: 88px; padding: 8px; }
 nav a { color: var(--accent); text-decoration: none; }
+.home-search { margin-bottom: 16px; }

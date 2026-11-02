@@ -15,6 +15,8 @@
 			wrap json
 			request>uri regexp "/a/[^/?#]+" "/a/[redacted]"
 			request>uri regexp "/claims/t/[^/?#]+" "/claims/t/[redacted]"
+			# What someone searched for is theirs alone (plan §11): drop /s query strings.
+			request>uri regexp "^/s(/results)?\?.*" "/s?[redacted]"
 			request>headers>Cookie delete
 			request>headers>Referer delete
 		}

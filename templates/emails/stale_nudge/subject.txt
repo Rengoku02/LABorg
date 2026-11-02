@@ -1,0 +1,1 @@
+{% autoescape off %}Did this arrive? {{ request_view.item_name|truncatechars:70 }}{% endautoescape %}

@@ -6,7 +6,6 @@ Phase 0 baseline (``apps.guard.baseline``), so that they report the same numbers
 order and the reasons a request can't be checked.
 """
 
-import calendar
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -16,6 +15,7 @@ from django.utils import timezone
 
 from apps.catalog.models import GenericCatalogKey, ItemType, SupplierProduct
 from apps.catalog.normalization import UNKNOWN_FAMILY, cross_family_key_ok
+from apps.core.dates import months_before
 from apps.core.policies import get_policy
 from apps.inventory.selectors import active_stock, product_family_ids
 from apps.quartzy.models import OrderRequest, OrderStatusObservation
@@ -435,14 +435,6 @@ def _lookback_start(subject, as_of):
     if not months:
         return None
     return months_before(as_of, months)
-
-
-def months_before(moment, months):
-    """The same day ``months`` calendar months earlier (the month's last day if shorter)."""
-    year, month = divmod(moment.month - 1 - months, 12)
-    year, month = moment.year + year, month + 1
-    day = min(moment.day, calendar.monthrange(year, month)[1])
-    return moment.replace(year=year, month=month, day=day)
 
 
 def _stocked_requests(lab, rows):

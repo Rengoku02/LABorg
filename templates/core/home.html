@@ -5,6 +5,11 @@
 <section class="card">
   <h1>LabStock</h1>
   {% if current_lab %}
+  <form method="get" action="{% url 'bench:search' %}" role="search" class="home-search">
+    <label for="home-q">Check before you buy: a name, a catalog #, or a vendor's page</label>
+    <input id="home-q" name="q" type="search" autocomplete="off">
+    <button type="submit" class="primary">Search</button>
+  </form>
   <ul class="tiles">
     <li><a class="tile" href="{% url 'bench:claims' %}"><strong>Claim your history</strong>
       <span>{% if pending_claims %}{{ pending_claims }} waiting for you{% else %}nothing waiting{% endif %}</span></a></li>
@@ -14,8 +19,14 @@
       <span>from a previous lab, a collaborator, a gift…</span></a></li>
     <li><a class="tile" href="{% url 'bench:box_new' %}"><strong>Register a box</strong>
       <span>with a photo of the lid</span></a></li>
+    <li><a class="tile" href="{% url 'bench:board' %}"><strong>On order</strong>
+      <span>what the lab is buying now</span></a></li>
+    <li><a class="tile" href="{% url 'bench:asks' %}"><strong>Ask the lab</strong>
+      <span>and your asks' replies</span></a></li>
     {% if is_champion %}<li><a class="tile" href="{% url 'bench:champions' %}"><strong>Lab pool claims</strong>
       <span>items of people who left</span></a></li>{% endif %}
+    {% if can_see_dashboard %}<li><a class="tile" href="{% url 'reports:dashboard' %}"><strong>Dashboard</strong>
+      <span>lab totals only</span></a></li>{% endif %}
     {% if can_label %}<li><a class="tile" href="{% url 'guard:label_list' %}"><strong>Label duplicate matches</strong>
       <span>decides when alerts go live</span></a></li>{% endif %}
   </ul>

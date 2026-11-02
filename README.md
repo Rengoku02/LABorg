@@ -126,7 +126,7 @@ Monitor them with an external dead-man's switch. Operations are covered in `docs
 | `apps/quartzy` | read-only Quartzy client, mirror models and sync |
 | `apps/guard` | duplicate matcher, shadow checks, replay, labelling (`/guard/label/`), Phase-0 baseline analysis |
 | `apps/inventory` | locations, stock items and their ledger (`apply_event`), the presenters that decide who sees what, CSV imports, claims and intake |
-| `apps/bench` | mobile pages: home, item and box pages, my stock, claim your history (and the email's scoped link), add what I have, register a box |
-| `apps/reports` | dashboard and digests (upcoming) |
+| `apps/bench` | mobile pages: home, search before you buy (`/s`, address-bar keyword, bookmarklet), ask the lab, the in-flight board, item and box pages, my stock, claim your history (and the email's scoped link), add what I have, register a box |
+| `apps/reports` | the lab-totals dashboard (`/reports/`), nudges, the personal digest, the PI's weekly lab summary, the email budget |
 | `scripts/quartzy_probe.py` | Phase-0 measurements and export (standalone) |
 | `notebooks/` | baseline duplicate analysis |

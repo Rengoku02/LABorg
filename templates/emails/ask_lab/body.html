@@ -1,0 +1,4 @@
+{% extends "emails/base.html" %}{% block body %}<p>Hi {{ notification.recipient.get_short_name }},</p>
+<p>{{ asker_name }} is looking for: <strong>{{ what }}</strong></p>
+<p>If you have some to spare, reply to this email to arrange it, or answer with one tap:
+{% for label, url in answer_links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endblock %}{% block footer %}<br>You get at most one of these a day.{% endblock %}

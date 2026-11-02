@@ -140,6 +140,10 @@ def _build(order_request, check, *, run, replay, now):
     check.as_of = as_of
     check.decided_at = now
     check.hold_reason = ""
+    if not replay:
+        from apps.inventory.search import searched_before
+
+        check.searched_before = searched_before(order_request)
     check.save()
     _save_matches(check, order_request, candidates, suppressed)
     # Live and timely: the alert step (a no-op while alerts are off, i.e. in shadow mode).

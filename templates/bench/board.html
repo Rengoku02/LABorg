@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}On order · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>What the lab has on order</h1>
+  <p class="meta">From Quartzy. Check here before ordering: someone may be buying the same thing.</p>
+</section>
+<section class="card">
+  <h2>Requested, not marked ordered ({{ waiting_views|length }})</h2>
+  <ul class="rows">{% for request_view in waiting_views %}<li>{{ request_view.item_name }} <span class="meta">{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ request_view.requester_name }} · {{ request_view.age_days }} day{{ request_view.age_days|pluralize }} ago</span></li>{% empty %}<li class="meta">Nothing.</li>{% endfor %}</ul>
+</section>
+<section class="card">
+  <h2>Ordered ({{ ordered_views|length }})</h2>
+  <ul class="rows">{% for request_view in ordered_views %}<li>{{ request_view.item_name }} <span class="meta">{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ request_view.requester_name }} · {{ request_view.status_label }} · {{ request_view.age_days }} day{{ request_view.age_days|pluralize }} ago</span></li>{% empty %}<li class="meta">Nothing.</li>{% endfor %}</ul>
+</section>
+<section class="card">
+  <h2>Probably arrived (open more than {{ arrived_after }} days) ({{ arrived_views|length }})</h2>
+  <ul class="rows">{% for request_view in arrived_views %}<li>{{ request_view.item_name }} <span class="meta">{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ request_view.requester_name }} · {{ request_view.status_label }}</span></li>{% empty %}<li class="meta">Nothing.</li>{% endfor %}</ul>
+</section>
+{% endblock %}

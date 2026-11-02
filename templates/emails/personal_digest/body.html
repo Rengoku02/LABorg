@@ -1,0 +1,8 @@
+{% extends "emails/base.html" %}{% block body %}<p>Hi {{ notification.recipient.get_short_name }},</p>
+{% if late_views %}<h3>Found after you'd ordered</h3><p style="color:#57606a;">Nothing to do unless you can still cancel.</p><ul>{% for request_view in late_views %}<li>{{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }})</li>{% endfor %}</ul>{% endif %}
+{% if unanswered_views %}<h3>Duplicate alerts you haven't answered</h3><ul>{% for request_view in unanswered_views %}<li>{{ request_view.item_name }}</li>{% endfor %}</ul><p><a href="{{ links.alerts }}">Your alerts</a></p>{% endif %}
+{% if reply_rows %}<h3>Replies to your asks</h3><ul>{% for who, answer, what in reply_rows %}<li>{{ who }}: {{ answer }} ({{ what }})</li>{% endfor %}</ul>{% endif %}
+{% if notification.context.asks_waiting %}<p>{{ notification.context.asks_waiting }} ask{{ notification.context.asks_waiting|pluralize }} from colleagues wait{{ notification.context.asks_waiting|pluralize:"s," }} for your answer in your email.</p>{% endif %}
+{% if notification.context.claims %}<p><a href="{{ links.claims }}">{{ notification.context.claims }} past purchase{{ notification.context.claims|pluralize }} to sort</a></p>{% endif %}
+{% if still_open_views %}<h3>Still open in Quartzy after a nudge</h3><ul>{% for request_view in still_open_views %}<li>{{ request_view.item_name }} ({{ request_view.status_label }})</li>{% endfor %}</ul>{% endif %}
+{% endblock %}{% block footer %}<br>A weekly digest, sent only when something is waiting for you.{% endblock %}

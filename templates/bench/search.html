@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Search · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Check before you buy</h1>
+  <form method="get" action="{% url 'bench:search' %}" role="search">
+    <label for="q">Name, catalog #, or paste the vendor's product page</label>
+    <input id="q" name="q" type="search" value="{{ q }}" autofocus autocomplete="off"
+           hx-get="{% url 'bench:search' %}" hx-trigger="keyup changed delay:400ms, search"
+           hx-target="#results" hx-push-url="true">
+    <button type="submit" class="primary">Search</button>
+  </form>
+  <p class="meta"><a href="{% url 'bench:search_setup' %}">Search from your browser's address bar or any vendor page</a></p>
+</section>
+<div id="results">{% include "bench/_search_results.html" %}</div>
+{% endblock %}
