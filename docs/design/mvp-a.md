@@ -574,6 +574,13 @@ Visibility matrix (the presenter is the only place it is decided):
 
 ## 5. Guard models (`apps/guard/models.py`)
 
+As built: the foreign key to a check is called `duplicate_check` (a field called `check` would
+hide Django's `Model.check()`), and its reverse names are `matches` and `outcomes`.
+
+- **CheckRun** (added): `lab`, `via` (`head` / `sweep` / `hot` / `resolve` / `safety_net` /
+  `replay` / `manual`), `started_at`, `finished_at`, `requests`, `checks_created`,
+  `alerts_planned`, `held` + `hold_reason`. One batch of checks: the "cycle" the circuit breaker
+  counts alerts in (§7.6).
 - **DuplicateCheck:**
   - `lab`, `order_request`, `matcher_version`, `replay` (bool), `shadow` (bool)
   - `status`: `no_match` / `uncheckable` / `out_of_scope` / `suppressed` / `unarmed` / `late` /
@@ -581,26 +588,34 @@ Visibility matrix (the presenter is the only place it is decided):
   - `uncheckable_reason`, `hold_reason`, `late`
   - `quartzy_native_would_fire_raw`, `quartzy_native_would_fire_norm`
   - `searched_before` (null until step 8), `alert_in_time` (null until known)
+  - `run` (CheckRun), `best_tier` (of the best unsuppressed match), `as_of` (when the check
+    reflects: when it ran, or the request's time for a replay)
   - `created_at`, `decided_at`
   - Unique on (order_request, matcher_version, replay).
 - **DuplicateMatch:**
-  - `check`, `tier` (`T1` / `T1x` / `T2` / `T3` / `T4`), `score`
+  - `duplicate_check`, `tier` (`T1` / `T1x` / `T2` / `T3` / `T4`), `candidate_kind`
+    (`stock` / `open` / `bought`), `score`, `probably` (unverified stock, or an open request
+    older than `guard.open_probably_arrived_days`), `why` (the text people see)
   - `candidate_stock_item` or `candidate_order_request` (a check constraint requires exactly
-    one), `candidate_snapshot` (JSON, what was shown)
-  - `suppressed` + `suppression_reason`
-  - `label` (`true_dup` / `related_not_dup` / `false`, null) + `labelled_by` + `labelled_at`
+    one; each is unique per check), `candidate_snapshot` (JSON: what the candidate was and who
+    holds or asked for it; never where stock is, which only the presenter shows)
+  - `suppressed` + `suppression_reason` (`recurring` / `pair`)
+  - `label` (`true_dup` / `related_not_dup` / `false`, blank) + `labelled_by` + `labelled_at`;
+    `label_suggestion` (a requester's "not the same thing", never a label)
 - **Outcome:**
-  - `check`, `kind`: `borrow_requested`, `join_requested`, `cancel_intended`,
+  - `duplicate_check`, `kind`: `borrow_requested`, `join_requested`, `cancel_intended`,
     `vendor_cancel_intended`, `vendor_cancel_confirmed`, `kept_offer_spare`, `not_same`,
     `need_own`, `borrowed`, `cancelled`, `joined_order`
-  - `reason` (pick-list), `decided_by`, `decided_at`, `verified_at`, `est_value_avoided`
+  - `reason` (pick-list), `decided_by`, `decided_at`, `verified_at`, `est_value_avoided`,
+    `notification`; unique on (duplicate_check, kind)
 - **PairSuppression:** `lab`, `subject_product`, `candidate_product`, `scope` (`requester` /
   `lab`), `requester` (null), `expires_at`, `created_by`, `reason`. Lab scope only by a co-owner.
 
 ## 6. Matcher (`apps/guard/matcher.py`, `suppression.py`)
 
-`find_matches(order_request, *, as_of=None) -> list[Candidate]`. It is pure apart from DB reads
-and deterministic.
+`find_matches(order_request, *, as_of=None, replay=False) -> list[Candidate]`, best first. It
+is pure apart from DB reads and deterministic. `MATCHER_VERSION = 1`; a change to what matches
+bumps it (a new version checks every request again, and labels carry over by pair).
 
 - **Subject:** the request's supplier product (family, key, base, identity, mfr keys), its
   product and its item type (QuartzyType → ItemType, else the product's).
@@ -617,18 +632,33 @@ and deterministic.
      After `guard.open_probably_arrived_days` they show as "probably arrived".
   3. "Probably bought" requests: not CANCELLED, older than `guard.probably_bought_days`, inside
      the item type's `lookback_months` (0 means none).
-  - Same-requester candidates are skipped unless `guard.include_same_requester`.
+     - As built: an open request is always kind `open` (so it is listed once), and a RECEIVED
+       one counts as bought at any age inside the look-back (it is bought for sure). With no
+       item type known, the look-back is 0.
+  - Only requests made before the subject are candidates (by `requested_at`, else
+    `first_seen_at`; ties by pk). A request whose active stock is a candidate is listed once,
+    as that stock.
+  - Same-requester candidates (the custodian, for stock) are skipped unless
+    `guard.include_same_requester`.
+  - A replay (`replay=True`) leaves stock out (LabStock's stock records didn't exist back then)
+    and reads each earlier request's status at the subject's time from the polling's status
+    observations, else from its current status: RECEIVED counts as received only when it was
+    requested 28 days before (otherwise it was on its way), CANCELLED is left out.
 - **Tiers:**
   - **T1:** same vendor family and same `catalog_key`, or the same manufacturer family + key.
   - **T1x:** the same key in different families. Only when `cross_family_key_ok(key)` holds
     (≥ `guard.cross_family_min_key_length`) **and** the item type matches or the name trigram
     similarity is ≥ `guard.cross_family_min_name_similarity`. Use
     `apps.guard.baseline.trigram_similarity`, so replay and baseline agree.
+    While item types aren't mapped, the same Quartzy type name counts as the same type (as the
+    baseline compares them).
   - **A same-key match inside the shared `unknown` vendor family is treated as T1x.**
-  - **T2:** same family and `catalog_base`, different key (a pack variant).
+  - **T2:** same family and `catalog_base`, different key (a pack variant). As built, also the
+    same canonical product through another listing, or stock with no listing (products merged
+    in the catalog, or stock added by name): "Same product, another listing".
   - T3/T4 come in v1. Generic supplier products never match on catalog #.
 - **Suppression** (`suppression.py`):
-  - excluded types
+  - excluded types: as built, these are the `out_of_scope` checks (`ItemType.in_scope`)
   - recurring consumables (≥ `guard.recurring_per_year` requests in 12 months), unless two are
     open at once
   - active PairSuppressions (requester scope by default; `need_own` lasts
@@ -648,6 +678,11 @@ and deterministic.
     that have no DuplicateCheck for the current matcher version.
   - A request that was `uncheckable` only because its resolution was `unresolved` is checked
     again, in place, once it resolves. Every other check is final for its matcher version.
+  - As built: `receivers.requests_synced` enqueues `tasks.check_requests(ids, via)`, which checks
+    50 per task in one CheckRun and re-enqueues the rest; `tasks.safety_net` is the schedule
+    `guard.safety_net` (registered through `apps.core.schedules`; `setup_schedules` syncs every
+    app's prefix). Each `checks.check_request` runs in one transaction under a per-lab
+    `pg_advisory_xact_lock`, so concurrent runs make one check, and counts per cycle hold.
 - **Per request, in order:**
   1. Build the check and its matches, and record the native-warning flags.
   2. **Arming:** `requested_at >= QuartzyLab.alerts_armed_at`, else `unarmed` (recorded, never
@@ -675,9 +710,17 @@ and deterministic.
   - "Open at t" comes from status observations where they exist; otherwise from the current
     status plus age, as the baseline does.
   - Stored as `replay=True, shadow=True` checks.
+  - As built: re-running skips requests already replayed with this matcher version, and labels
+    carry over by pair (subject request, candidate) between replay and live checks and across
+    matcher versions, so nobody labels a pair twice. `apps.guard.records.request_record` turns
+    an OrderRequest into the baseline's `RequestRecord` (from its stored Quartzy payload), and
+    `tests/guard/test_replay.py` holds the replay to the baseline's pairs on the sample export.
 - `manage.py guard_report` and `precision_report(lab)` give, per tier, the number labelled, the
   true duplicates, the precision and the gate: ≥ `guard.go_live_min_labelled` labelled and
-  ≥ `guard.go_live_min_precision`.
+  ≥ `guard.go_live_min_precision`. As built, also per tier and candidate kind (`T1/open`, so
+  "T1 against open requests" can go live first), with a pair labelled in both replay and live
+  counted once, the Wilson lower bound for information, and the uncheckable share next to the
+  baseline's.
 
 ## 8. Alerts, actions, outcomes (`apps/guard/alerts.py`, `outcomes.py`, `views.py`)
 

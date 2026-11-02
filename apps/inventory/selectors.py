@@ -5,6 +5,7 @@ rows (querysets, ready to filter further); pages, emails and CSVs show them only
 ``presenters``, and a list of what is in a location with ``listed_in=`` that location.
 
 - ``active_stock(lab, *, products=None, supplier_products=None)``: what the guard checks
+- ``items_by_ids(lab, ids)``: the stock items a match or a claim points at
 - ``stock_held_by(person, *, lab, active_only=True)``
 - ``location_contents(location, *, include_sublocations=False, active_only=True)``
 - ``child_locations(location, *, include_inactive=False)``
@@ -69,6 +70,17 @@ def active_stock(lab, *, products=None, supplier_products=None):
     if matches:
         items = items.filter(reduce(or_, matches))
     return items.select_related(*_ITEM_RELATED).order_by("pk")
+
+
+def items_by_ids(lab, ids):
+    """These stock items of the lab (active or not), ready for the presenters: e.g. the
+    stock a duplicate match points at."""
+    return (
+        StockItem.objects.for_lab(lab)
+        .filter(pk__in=list(ids))
+        .select_related(*_ITEM_RELATED)
+        .order_by("pk")
+    )
 
 
 def stock_held_by(person, *, lab, active_only=True):

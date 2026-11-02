@@ -1,0 +1,54 @@
+<article class="card match" id="match-{{ match_view.pk }}">
+  <p class="badges">
+    <span class="tier">{{ match_view.tier }}</span>
+    <span>{{ match_view.kind_label }}</span>
+    {% if match_view.replay %}<span class="history">from history</span>{% endif %}
+    {% if match_view.probably %}<span class="probably">probably</span>{% endif %}
+  </p>
+  <div class="pair">
+    <div class="side">
+      <h2>New request</h2>
+      {% with subject_view=match_view.subject %}
+        {% if subject_view %}
+          <p class="what">{{ subject_view.item_name }}</p>
+          <p>{{ subject_view.vendor }} {{ subject_view.catalog_number }}{% if subject_view.unit_size %} · {{ subject_view.unit_size }}{% endif %}</p>
+          <p class="meta">{{ subject_view.requester_name }} · {{ subject_view.requested_at|date:"Y-m-d" }}{% if subject_view.value_text %} · {{ subject_view.value_text }}{% endif %}</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+    <div class="side">
+      <h2>Matched</h2>
+      {% if match_view.item %}
+        {% with item_view=match_view.item %}
+          <p class="what">{{ item_view.product_name }}</p>
+          <p>{{ item_view.vendor }} {{ item_view.catalog_number }}</p>
+          <p class="meta">{{ item_view.custodian_name }}{% if item_view.location_path %} · {{ item_view.location_path }}{% endif %} · {{ item_view.lifecycle_label }}</p>
+        {% endwith %}
+      {% elif match_view.request %}
+        {% with request_view=match_view.request %}
+          <p class="what">{{ request_view.item_name }}</p>
+          <p>{{ request_view.vendor }} {{ request_view.catalog_number }}{% if request_view.unit_size %} · {{ request_view.unit_size }}{% endif %}</p>
+          <p class="meta">{{ request_view.requester_name }} · {{ request_view.requested_at|date:"Y-m-d" }} · {{ request_view.status_label }}</p>
+        {% endwith %}
+      {% else %}
+        <p class="meta">No longer available.</p>
+      {% endif %}
+    </div>
+  </div>
+  <p class="why">{{ match_view.why }}</p>
+  {% if match_view.label_suggestion %}<p class="meta">The requester answered: {{ match_view.label_suggestion }}.</p>{% endif %}
+  {% if match_view.label %}
+    <p class="labelled">Labelled: <strong>{{ match_view.label_text }}</strong></p>
+  {% endif %}
+  <div class="choices">
+    {% for value, text in buttons %}
+    <form method="post" action="{% url 'guard:label_match' match_view.pk %}"
+          hx-post="{% url 'guard:label_match' match_view.pk %}"
+          hx-target="#match-{{ match_view.pk }}" hx-swap="outerHTML">
+      {% csrf_token %}
+      <input type="hidden" name="label" value="{{ value }}">
+      <button type="submit"{% if match_view.label == value %} class="primary"{% endif %}>{{ text }}</button>
+    </form>
+    {% endfor %}
+  </div>
+</article>

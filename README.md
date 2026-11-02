@@ -101,6 +101,16 @@ admin. It prints which labs it left off. After an update that changes catalog-nu
 re-key and re-resolve as `docs/runbook.md` describes (`refresh_catalog_keys`, then
 `quartzy_resolve --all`).
 
+The duplicate guard starts in silent shadow mode: every new request gets a check, nothing is
+emailed. Replay the history and label matches while the shadow weeks run:
+
+```bash
+docker compose exec web python manage.py guard_replay --lab our-lab --months 12
+docker compose exec web python manage.py guard_report --lab our-lab   # per-tier gates
+```
+
+The co-owner labels matches at `/guard/label/`.
+
 Backups run from the host: `scripts/backup.sh` does `pg_dump` plus media, sent to restic.
 Monitor them with an external dead-man's switch. Operations are covered in `docs/runbook.md`.
 
@@ -111,7 +121,7 @@ Monitor them with an external dead-man's switch. Operations are covered in `docs
 | `apps/core` | users, lab memberships, policies, signed one-action email links, email queue |
 | `apps/catalog` | global product identity: vendors, catalog-number normalization, products, lots |
 | `apps/quartzy` | read-only Quartzy client, mirror models and sync |
-| `apps/guard` | duplicate matcher, alerts, Phase-0 baseline analysis |
+| `apps/guard` | duplicate matcher, shadow checks, replay, labelling (`/guard/label/`), Phase-0 baseline analysis |
 | `apps/inventory` | locations, stock items and their ledger (`apply_event`), the presenters that decide who sees what, CSV imports |
 | `apps/bench`, `apps/reports` | mobile pages, dashboard and digests (MVP-A, upcoming) |
 | `scripts/quartzy_probe.py` | Phase-0 measurements and export (standalone) |

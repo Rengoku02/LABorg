@@ -1,0 +1,18 @@
+/* The duplicate guard's pages (apps/guard). */
+.gates { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.gates th, .gates td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.gates tr.sub th { padding-left: 24px; font-weight: normal; color: var(--muted); }
+.gates .ok { color: var(--ok); font-weight: 600; }
+.match .badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; color: var(--muted); }
+.match .tier { font-weight: 700; color: var(--fg); }
+.match .history, .match .probably { border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; }
+.match .pair { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 640px) { .match .pair { grid-template-columns: 1fr 1fr; } }
+.match h2 { font-size: 0.85rem; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
+.match .what { font-weight: 600; margin: 0; }
+.match p { margin: 2px 0; }
+.match .meta { color: var(--muted); }
+.match .why { margin-top: 8px; }
+.match .choices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.match .choices form { margin: 0; }
+.pager { display: flex; gap: 12px; align-items: center; justify-content: center; }

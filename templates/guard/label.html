@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+  The co-owner's labelling page (design §8). Requests and stock are shown only through
+  their presenters (match_view.subject / .item / .request). No inline scripts or styles.
+{% endcomment %}
+{% block title %}Label matches · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/guard.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Label duplicate matches</h1>
+  <p>Is the new request the same thing as what it matched? Your labels decide when each kind
+    of match may start emailing people (at least {% if tiers %}{{ tiers.0.min_labelled }}{% else %}30{% endif %}
+    labelled, at least {% if tiers %}{{ tiers.0.min_precision|floatformat:2 }}{% else %}0.85{% endif %}
+    of them the same thing). Nobody is emailed while the guard is in shadow mode.</p>
+  {% if tiers %}
+  <table class="gates">
+    <thead><tr><th scope="col">Match</th><th scope="col">Found</th><th scope="col">Labelled</th>
+      <th scope="col">Same thing</th><th scope="col">Precision</th><th scope="col">Gate</th></tr></thead>
+    <tbody>
+      {% for tier in tiers %}
+      <tr class="{% if tier.kind %}sub{% endif %}">
+        <th scope="row">{{ tier.name }}</th>
+        <td>{{ tier.matches }}</td>
+        <td>{{ tier.labelled }}</td>
+        <td>{{ tier.true_dup }}</td>
+        <td>{% if tier.precision is None %}—{% else %}{{ tier.precision|floatformat:2 }}{% endif %}</td>
+        <td>{% if tier.gate_ok %}<span class="ok">passes</span>{% else %}not yet{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+{% for match_view in match_views %}
+  {% include "guard/_match_row.html" with match_view=match_view %}
+{% empty %}
+  <section class="card"><p>Nothing to label right now.</p></section>
+{% endfor %}
+
+{% if page.has_other_pages %}
+<nav class="pager">
+  {% if page.has_previous %}<a class="button" href="?page={{ page.previous_page_number }}">Previous</a>{% endif %}
+  <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="button" href="?page={{ page.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
