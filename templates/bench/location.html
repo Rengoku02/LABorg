@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}One location: its own view, and what's in it listed with listed_in= this place.{% endcomment %}
+{% block title %}{{ location_view.name }} · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <p class="code">{{ location_view.code }}</p>
+  <h1>{{ location_view.name }}</h1>
+  <p>{{ location_view.kind_label }}{% if location_view.temperature_label %} · {{ location_view.temperature_label }}{% endif %}{% if location_view.custodian_name %} · {{ location_view.custodian_name }}'s{% endif %}</p>
+  {% if location_view.redacted %}
+  <p class="meta">{{ location_view.ask_text|default:"Its owner keeps where it is private." }}</p>
+  {% else %}
+  {% if location_view.parent_path %}<p class="meta">In {{ location_view.parent_path }}</p>{% endif %}
+  {% if location_view.tag_labels %}<p class="meta">Holds: {{ location_view.tag_labels|join:", " }}</p>{% endif %}
+  {% if location_view.notes %}<p>{{ location_view.notes }}</p>{% endif %}
+  {% if location_view.has_photo %}<img class="lid" src="{% url 'bench:location_photo' location_view.code %}" alt="Photo of the lid of {{ location_view.name }}">{% endif %}
+  {% endif %}
+</section>
+{% if child_views %}
+<section class="card">
+  <h2>Inside</h2>
+  <ul class="rows">
+    {% for child_view in child_views %}<li><a href="{{ child_view.url }}">{{ child_view.name }}</a> <span class="meta">{{ child_view.kind_label }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+<section class="card">
+  <h2>Stock here</h2>
+  {% if item_views %}
+  <ul class="rows">
+    {% for item_view in item_views %}
+    <li><a href="{{ item_view.url }}">{{ item_view.product_name }}</a>
+      <span class="meta">{% if item_view.position %}{{ item_view.position }} · {% endif %}{{ item_view.custodian_name }} · {{ item_view.lifecycle_label }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="meta">Nothing listed here yet.</p>{% endif %}
+</section>
+{% endblock %}

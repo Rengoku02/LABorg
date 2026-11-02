@@ -1,0 +1,9 @@
+{% if options %}
+<fieldset>
+  <legend>Pick one, or leave it and describe it below</legend>
+  <label class="check"><input type="radio" name="product" value="" checked> None of these</label>
+  {% for value, label in options %}
+  <label class="check"><input type="radio" name="product" value="{{ value }}"> {{ label }}</label>
+  {% endfor %}
+</fieldset>
+{% endif %}

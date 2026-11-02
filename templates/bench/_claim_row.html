@@ -1,0 +1,51 @@
+<article class="card claim" id="claim-{{ claim_view.pk }}">
+  {% with request_view=claim_view.request %}
+  <h2>{{ request_view.item_name }}</h2>
+  <p>{{ request_view.vendor }} {{ request_view.catalog_number }}{% if request_view.unit_size %} · {{ request_view.unit_size }}{% endif %}</p>
+  <p class="meta">Requested {{ request_view.requested_at|date:"Y-m-d" }}{% if request_view.value_text %} · {{ request_view.value_text }}{% endif %}{% if claim_view.person_name and champion_list %} · {{ claim_view.person_name }}{% endif %}</p>
+  {% endwith %}
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% if claim_view.outcome != "pending" %}
+    <p class="answered">Answered: <strong>{{ claim_view.outcome_label }}</strong></p>
+    {% for item_view in claim_view.kept_items %}<p><a href="{{ item_view.url }}">{{ item_view.short_id }}</a> {{ item_view.location_path|default:item_view.location_name }}</p>{% endfor %}
+  {% else %}
+    {% for item_view in claim_view.same_items %}
+    <form class="inline-choice" method="post" action="{% url 'bench:claim_decide' claim_view.pk %}"
+          hx-post="{% url 'bench:claim_decide' claim_view.pk %}" hx-target="#claim-{{ claim_view.pk }}" hx-swap="outerHTML">
+      {% csrf_token %}
+      <input type="hidden" name="outcome" value="still_have">
+      <input type="hidden" name="same_item" value="{{ item_view.short_id }}">
+      <button type="submit">This is the same one: {{ item_view.short_id }}{% if item_view.location_path %} in {{ item_view.location_path }}{% endif %}</button>
+    </form>
+    {% endfor %}
+    <form method="post" action="{% url 'bench:claim_decide' claim_view.pk %}"
+          hx-post="{% url 'bench:claim_decide' claim_view.pk %}" hx-target="#claim-{{ claim_view.pk }}" hx-swap="outerHTML">
+      {% csrf_token %}
+      <label for="claim-{{ claim_view.pk }}-outcome">Answer</label>
+      <select id="claim-{{ claim_view.pk }}-outcome" name="outcome">
+        {% for value, label in form.fields.outcome.choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <div class="split">
+        <div>
+          <label for="claim-{{ claim_view.pk }}-count">How many?</label>
+          <input id="claim-{{ claim_view.pk }}-count" name="count" type="number" min="1" max="50" value="1">
+        </div>
+        <div>
+          <label for="claim-{{ claim_view.pk }}-temp">Kept at</label>
+          <select id="claim-{{ claim_view.pk }}-temp" name="temp">
+            {% for value, label in form.fields.temp.choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <label for="claim-{{ claim_view.pk }}-place">Where (still have it, shared stock)</label>
+      <select id="claim-{{ claim_view.pk }}-place" name="place">
+        {% for value, label in form.fields.place.choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <label for="claim-{{ claim_view.pk }}-given">Given to (gave it to someone)</label>
+      <select id="claim-{{ claim_view.pk }}-given" name="given_to">
+        {% for value, label in form.fields.given_to.choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="primary">Save</button>
+    </form>
+  {% endif %}
+</article>

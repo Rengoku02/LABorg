@@ -31,15 +31,25 @@ DEFAULTS = {
     # Inventory (docs/design/mvp-a.md §2 and §3).
     "inventory.default_visibility": "ask_first",  # shared / ask_first / restricted
     "inventory.quartzy_split_max": 20,
+    # Days after which stock events stop naming who did them (None: the PI hasn't decided).
+    "inventory.pseudonymize_after_days": None,
     # Nudges and claims.
     "nudges.stale_days": 21,
     "claims.after_receipt_days": 7,
     "claims.after_request_days": 21,
     "claims.lookback_months": 24,
     "claims.batch_size": 15,
-    # Email budget.
+    "claims.max_rounds": 3,  # how many weekly rounds a "later" comes back
+    # Asks and the email budget. The ask cap holds both ways: one lab-wide ask started per
+    # person per day, and at most one batched ask email received per person per day.
     "asks.max_per_person_per_day": 1,
+    "asks.batch_hours": [10, 15],  # lab-local hours at which held asks go out
     "email.max_non_alert_per_week": 3,
+    # Search before you buy.
+    "search.bought_before_months": 24,
+    "search.searched_before_days": 14,  # a search this long before a request counts
+    # Who opens the lab-totals dashboard: "leads" (PI, co-owners, system owners) or "members".
+    "reports.dashboard_audience": "leads",
     # Quartzy sync cadence (plan §8).
     "sync.lab_hours": [7, 20],
     "sync.head_interval_lab_hours_minutes": 2,

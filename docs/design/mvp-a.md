@@ -589,6 +589,30 @@ Visibility matrix (the presenter is the only place it is decided):
 - **Register a box:** owner, parent location, type tags, optional lid photo, label → a box
   Location (searchable before it's itemized). Photos are served only through a login-checked
   view, never as public media.
+- **As built:**
+  - `claims.py`: `claimable_requests`, `surface_claims` (new pending claims; a `skipped` or
+    `not_arrived` one comes back pending a week on, up to `claims.max_rounds`),
+    `pending_claims` (most valuable first), `decide(claim, outcome, *, by, count_kept,
+    location, temperature, target_person, same_item, visibility)`, `champions_list`,
+    `claim_views` (`ClaimView` embeds the `RequestView` and the `ItemView`s of "same bottle"
+    candidates and kept stock), `queue_claims_emails` (kind `claims`, period = ISO week).
+    `HistoryClaim.decided_by` records who answered (the person, or a champion for the pool).
+    "Durable" is the Quartzy type's item type, else the product's; only `source=quartzy`
+    requests are claimed.
+  - The scoped session: `claim_link` signs `{n, r, k}` with salt `labstock.claims.v1` (14 days);
+    `open_claim_session` cycles the session key and stores `claims_scope` (person, lab, 7 days);
+    `@claims_access` (apps/bench/views.py) accepts it on the claims pages only. Nobody is
+    logged in by it. Log filters and Caddy redact `/claims/t/<token>`.
+  - `intake.py`: `add_what_i_have` (a repeated `client_uuid` adds nothing), `product_typeahead`,
+    `register_box`, `check_photo` (size, then JPEG/PNG/WebP/HEIC magic bytes).
+  - `apps/inventory/tasks.tick` (schedule `inventory.tick`, hourly) runs the claims round on
+    Monday from 08:00 lab time.
+  - Pages (`apps/bench`): home tiles, `/i/<short_id>` (the custodian may change its sharing:
+    the only stock change in MVP-A's UI), `/l/<code>` (+ `/photo`), `/me/stock`, `/claims/`
+    (htmx rows), `/claims/t/<token>/`, `/claims/<pk>/`, `/claims/champions/`, `/add/`
+    (+ `/add/products` typeahead), `/boxes/new`. Form fields avoid names the template scan
+    reserves for views (`place`, `temp`, `lot_number`, `remarks`). Another lab's member gets a
+    404 (their own lab has no such item), not a 403.
 
 ## 5. Guard models (`apps/guard/models.py`)
 

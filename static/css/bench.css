@@ -1,0 +1,28 @@
+/* The bench pages (apps/bench): one column, 44 px tap targets, no inline styles (CSP). */
+.tiles { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .tiles { grid-template-columns: 1fr 1fr; } }
+.tile { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px;
+        text-decoration: none; color: var(--fg); min-height: 44px; background: var(--card); }
+.tile strong { display: block; }
+.tile span, .meta { color: var(--muted); }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); margin: 0; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 12px 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+.ask { font-weight: 600; }
+.rows { list-style: none; padding: 0; margin: 0; }
+.rows li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.rows li:last-child { border-bottom: none; }
+.rows .meta { display: block; }
+.lid { max-width: 100%; height: auto; border-radius: 6px; margin-top: 8px; }
+.claim h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.claim form { margin-top: 8px; }
+.claim .answered { color: var(--ok); }
+.inline-choice button { width: 100%; text-align: left; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+.check input { width: auto; min-height: 0; }
+.options fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 8px 0; }
+.error { color: var(--bad); }
+textarea { font: inherit; width: 100%; max-width: 480px; min-height: 88px; padding: 8px; }
+nav a { color: var(--accent); text-decoration: none; }

@@ -1,8 +1,9 @@
 import logging
 import re
 
-# Signed action links look like /a/<token>/<action>/ — never let the token reach a log.
-TOKEN_PATH = re.compile(r"(/a/)[^/\s?#]+")
+# Signed links carry a token in the path: action links /a/<token>/<action>/ and the claims
+# email's /claims/t/<token>/. Never let a token reach a log.
+TOKEN_PATH = re.compile(r"(/a/|/claims/t/)[^/\s?#]+")
 
 
 def _redact(value):

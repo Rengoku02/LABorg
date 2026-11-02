@@ -1,7 +1,26 @@
 {% extends "base.html" %}
+{% load static %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
 {% block content %}
 <section class="card">
   <h1>LabStock</h1>
-  <p>Search, claims and duplicate alerts arrive here as MVP-A ships.</p>
+  {% if current_lab %}
+  <ul class="tiles">
+    <li><a class="tile" href="{% url 'bench:claims' %}"><strong>Claim your history</strong>
+      <span>{% if pending_claims %}{{ pending_claims }} waiting for you{% else %}nothing waiting{% endif %}</span></a></li>
+    <li><a class="tile" href="{% url 'bench:my_stock' %}"><strong>My stock</strong>
+      <span>{{ held }} item{{ held|pluralize }}</span></a></li>
+    <li><a class="tile" href="{% url 'bench:add' %}"><strong>Add what I have</strong>
+      <span>from a previous lab, a collaborator, a gift…</span></a></li>
+    <li><a class="tile" href="{% url 'bench:box_new' %}"><strong>Register a box</strong>
+      <span>with a photo of the lid</span></a></li>
+    {% if is_champion %}<li><a class="tile" href="{% url 'bench:champions' %}"><strong>Lab pool claims</strong>
+      <span>items of people who left</span></a></li>{% endif %}
+    {% if can_label %}<li><a class="tile" href="{% url 'guard:label_list' %}"><strong>Label duplicate matches</strong>
+      <span>decides when alerts go live</span></a></li>{% endif %}
+  </ul>
+  {% else %}
+  <p>You aren't a current member of a lab in LabStock.</p>
+  {% endif %}
 </section>
 {% endblock %}

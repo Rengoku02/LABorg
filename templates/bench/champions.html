@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Lab pool claims · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Lab pool claims</h1>
+  <p>Purchases of people who have left, and ones somebody said aren't theirs. Claim them for
+    the lab: “In the shared stock” puts them in the lab pool.</p>
+</section>
+{% for claim_view in claim_views %}
+  {% include "bench/_claim_row.html" with claim_view=claim_view champion_list=True %}
+{% empty %}
+  <section class="card"><p>Nothing on the list.</p></section>
+{% endfor %}
+{% endblock %}

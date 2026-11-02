@@ -970,6 +970,14 @@ class HistoryClaim(models.Model):
     stock_items = models.ManyToManyField(StockItem, blank=True, related_name="history_claims")
     surfaced_at = models.DateTimeField(default=timezone.now)
     decided_at = models.DateTimeField(null=True, blank=True)
+    # The person, or a champion or co-owner answering for the lab pool.
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     notes = models.TextField(blank=True)
 
     objects = HistoryClaimQuerySet.as_manager()

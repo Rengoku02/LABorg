@@ -5,11 +5,19 @@ from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_http_methods
 
 from . import actions
+from .permissions import is_member
 
 
 @login_required
 def home(request):
-    return render(request, "core/home.html")
+    """The member's home: what's waiting for them (claims), and the bench's main pages."""
+    context = {}
+    lab = getattr(request, "lab", None)
+    if lab is not None and is_member(request.user, lab):
+        from apps.bench.views import home_context
+
+        context = home_context(request)
+    return render(request, "core/home.html", context)
 
 
 @require_GET

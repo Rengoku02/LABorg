@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}One stock item, as the presenter shows it to this viewer (no model reads).{% endcomment %}
+{% block title %}{{ item_view.product_name }} · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card item">
+  <p class="code">{{ item_view.short_id }}</p>
+  <h1>{{ item_view.product_name }}</h1>
+  <p>{{ item_view.vendor }} {{ item_view.catalog_number }}{% if item_view.item_type %} · {{ item_view.item_type }}{% endif %}</p>
+  <dl class="facts">
+    <dt>Holder</dt><dd>{{ item_view.custodian_name }}{% if item_view.custodian_has_left %} (has left the lab){% endif %}</dd>
+    <dt>Status</dt><dd>{{ item_view.lifecycle_label }}{% if item_view.unverified_text %} · {{ item_view.unverified_text }}{% endif %}{% if item_view.level == "low" %} · running low{% endif %}</dd>
+    <dt>Sharing</dt><dd>{{ item_view.visibility_label }}</dd>
+    {% if item_view.redacted %}
+    <dt>Where</dt><dd>Not shown to you.</dd>
+    {% else %}
+    <dt>Where</dt>
+    <dd>{% if item_view.unplaced %}{{ item_view.location_name }} (not placed yet){% else %}<a href="{{ item_view.location_url }}">{{ item_view.location_path }}</a>{% endif %}{% if item_view.position %} · {{ item_view.position }}{% endif %}{% if item_view.temperature_label %} · {{ item_view.temperature_label }}{% endif %}</dd>
+    {% if item_view.lot %}<dt>Lot</dt><dd>{{ item_view.lot }}</dd>{% endif %}
+    {% if item_view.expiry_text %}<dt>Expires</dt><dd>{{ item_view.expiry_text }}</dd>{% endif %}
+    {% if item_view.quantity_text %}<dt>Amount</dt><dd>{{ item_view.quantity_text }}</dd>{% endif %}
+    {% if item_view.containers_text %}<dt>Containers</dt><dd>{{ item_view.containers_text }}</dd>{% endif %}
+    {% if item_view.notes %}<dt>Notes</dt><dd>{{ item_view.notes }}</dd>{% endif %}
+    {% endif %}
+  </dl>
+  {% if item_view.ask_text %}<p class="ask">{{ item_view.ask_text }} before taking any.</p>{% endif %}
+</section>
+{% if share_form %}
+<section class="card">
+  <h2>Who may see where it is?</h2>
+  <p class="meta">Shared: anyone may take some. Ask first: people see where it is and ask you. Restricted: people only see that you have it.</p>
+  <form method="post" action="{% url 'bench:item_share' item_view.short_id %}">
+    {% csrf_token %}
+    <label for="id_share">Sharing</label>{{ share_form.share }}{{ share_form.version }}
+    <button type="submit" class="primary">Save</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

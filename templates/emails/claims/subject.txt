@@ -1,0 +1,1 @@
+[LabStock] Claim your history: {{ count }} item{{ count|pluralize }} to sort

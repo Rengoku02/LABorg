@@ -8,11 +8,13 @@
 
 	log {
 		output stdout
-		# Signed one-action email links carry a token in the path (/a/<token>/<action>/);
-		# never let it reach a log file. Cookies are dropped for the same reason.
+		# Signed email links carry a token in the path (/a/<token>/<action>/ and
+		# /claims/t/<token>/); never let it reach a log file. Cookies are dropped for the
+		# same reason.
 		format filter {
 			wrap json
 			request>uri regexp "/a/[^/?#]+" "/a/[redacted]"
+			request>uri regexp "/claims/t/[^/?#]+" "/claims/t/[redacted]"
 			request>headers>Cookie delete
 			request>headers>Referer delete
 		}

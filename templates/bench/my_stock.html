@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My stock · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>My stock</h1>
+  {% if item_views %}
+  <ul class="rows">
+    {% for item_view in item_views %}
+    <li><a href="{{ item_view.url }}">{{ item_view.product_name }}</a>
+      <span class="meta">{{ item_view.location_path|default:item_view.location_name }}{% if item_view.position %} · {{ item_view.position }}{% endif %} · {{ item_view.visibility_label }}{% if item_view.unverified %} · not checked yet{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nothing yet. <a href="{% url 'bench:claims' %}">Claim your history</a> or <a href="{% url 'bench:add' %}">add what you have</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

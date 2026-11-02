@@ -16,6 +16,11 @@
     {% if current_lab %}<span class="lab">{{ current_lab.name }}</span>{% endif %}
     <nav>
       {% if user.is_authenticated %}
+        {% if current_lab %}
+        <a href="{% url 'bench:my_stock' %}">My stock</a>
+        <a href="{% url 'bench:claims' %}">Claims</a>
+        <a href="{% url 'bench:add' %}">Add</a>
+        {% endif %}
         <span class="who">{{ user.get_short_name }}</span>
         <form method="post" action="{% url 'account_logout' %}" class="inline">
           {% csrf_token %}<button type="submit" class="link">Sign out</button>

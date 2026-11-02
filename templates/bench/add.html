@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Add what I have · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Add what I have</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.client_uuid }}
+    <label for="product-search">Find it in what the lab bought before</label>
+    <input id="product-search" name="q" type="search" autocomplete="off" placeholder="Name or catalog #"
+           hx-get="{% url 'bench:add_products' %}" hx-trigger="keyup changed delay:300ms, search"
+           hx-target="#product-options">
+    <div id="product-options" class="options"></div>
+    <p class="meta">Not there? Describe it:</p>
+    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>{{ form.name }}
+    <div class="split">
+      <div><label for="{{ form.vendor.id_for_label }}">Vendor</label>{{ form.vendor }}</div>
+      <div><label for="{{ form.catalog_number.id_for_label }}">Catalog #</label>{{ form.catalog_number }}</div>
+    </div>
+    <label for="{{ form.item_type.id_for_label }}">Type</label>{{ form.item_type }}
+    <label for="{{ form.source.id_for_label }}">{{ form.source.label }}</label>{{ form.source }}
+    <label for="{{ form.count.id_for_label }}">{{ form.count.label }}</label>{{ form.count }}
+    <label for="{{ form.place.id_for_label }}">{{ form.place.label }}</label>{{ form.place }}
+    <label for="{{ form.temp.id_for_label }}">Kept at (if placing later)</label>{{ form.temp }}
+    <label for="{{ form.share.id_for_label }}">{{ form.share.label }}</label>{{ form.share }}
+    <div class="split">
+      <div><label for="{{ form.lot_number.id_for_label }}">Lot</label>{{ form.lot_number }}</div>
+      <div><label for="{{ form.expiry.id_for_label }}">{{ form.expiry.label }}</label>{{ form.expiry }}</div>
+    </div>
+    <label class="check">{{ form.mta }} {{ form.mta.label }}</label>
+    <label for="{{ form.remarks.id_for_label }}">Notes</label>{{ form.remarks }}
+    <button type="submit" class="primary">Add</button>
+  </form>
+</section>
+{% endblock %}

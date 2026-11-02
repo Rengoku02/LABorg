@@ -1,0 +1,9 @@
+{% extends "emails/base.html" %}{% block body %}
+<p>Hi {{ notification.recipient.get_short_name }},</p>
+<p>What became of these? Still have it, used up, gave it to someone: one tap each, and the lab's stock list fills in.</p>
+<ul>
+{% for request_view in request_views %}<li>{{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}), requested {{ request_view.requested_at|date:"Y-m-d" }}{% if request_view.value_text %}, {{ request_view.value_text }}{% endif %}</li>
+{% endfor %}</ul>
+{% if more %}<p>…and {{ more }} more.</p>{% endif %}
+<p><a href="{{ claims_url }}">Sort them</a> (the link works for 7 days and opens only your claims list).</p>
+{% endblock %}

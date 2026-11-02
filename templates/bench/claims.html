@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}Claim your history: the person's pending claims, most valuable first.{% endcomment %}
+{% block title %}Claim your history · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Claim your history</h1>
+  <p>What became of these? Each answer takes a tap; the lab's stock list fills in from them.
+    {% if scoped %}You're answering as {{ person_name }} from your email link.{% endif %}</p>
+  <p class="meta">{{ claim_views|length }} waiting. You can stop any time: “Later” brings one back next week.</p>
+</section>
+{% for claim_view in claim_views %}
+  {% include "bench/_claim_row.html" with claim_view=claim_view %}
+{% empty %}
+  <section class="card"><p>Nothing to claim right now. Thank you!</p></section>
+{% endfor %}
+{% endblock %}

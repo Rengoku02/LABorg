@@ -1,0 +1,10 @@
+{% extends "emails/base.txt" %}{% block body %}Hi {{ notification.recipient.get_short_name }},
+
+What became of these? Still have it, used up, gave it to someone: one tap each, and the lab's stock list fills in.
+
+{% for request_view in request_views %}- {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}), requested {{ request_view.requested_at|date:"Y-m-d" }}{% if request_view.value_text %}, {{ request_view.value_text }}{% endif %}
+{% endfor %}{% if more %}...and {{ more }} more.
+{% endif %}
+Sort them: {{ claims_url }}
+(The link works for 7 days and opens only your claims list.)
+{% endblock %}
