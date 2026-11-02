@@ -38,5 +38,8 @@
     <ul class="messages">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
   {% endif %}
   <main>{% block content %}{% endblock %}</main>
+  {% if user.is_authenticated and current_lab %}
+  <footer class="foot"><a href="{% url 'bench:friction' %}?page={{ request.path|urlencode }}">Something awkward? Tell us</a></footer>
+  {% endif %}
 </body>
 </html>

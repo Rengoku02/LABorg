@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Feedback · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/bench.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Something awkward?</h1>
+  <p>Too many taps, a confusing word, a missing option: tell the system owners. Only they read these.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="page" value="{{ page }}">
+    <label for="friction-text">What happened?</label>
+    <textarea id="friction-text" name="text" maxlength="2000" required></textarea>
+    <button type="submit" class="primary">Send</button>
+  </form>
+</section>
+{% endblock %}

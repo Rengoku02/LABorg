@@ -28,11 +28,13 @@ class Period:
     label: str
 
     def year_before(self):
-        return Period(
-            self.start.replace(year=self.start.year - 1),
-            self.end.replace(year=self.end.year - 1),
-            f"{self.label} last year",
-        )
+        start = self.start.replace(year=self.start.year - 1)
+        label = self.label
+        if label.startswith("Q") and label.endswith(str(self.start.year)):
+            label = f"{label.rsplit(' ', 1)[0]} {start.year}"  # "Q4 2026" -> "Q4 2025"
+        else:
+            label = f"{label}, a year earlier"
+        return Period(start, self.end.replace(year=self.end.year - 1), label)
 
 
 def quarter(lab, day=None):
@@ -160,8 +162,16 @@ def overview(lab, period):
         "coverage": coverage(lab),
         "asks": asks_borrowed(lab, period),
         "tiers": precision_report(lab),
-        "uncheckable": uncheckable_share(lab),
+        "uncheckable": _uncheckable(lab),
     }
+
+
+def _uncheckable(lab):
+    """The live checks' uncheckable share; the replay's until there are live checks."""
+    share = uncheckable_share(lab)
+    if share["checked"]:
+        return {**share, "source": "live"}
+    return {**uncheckable_share(lab, replay=True), "source": "replay"}
 
 
 def _rate(part, whole):

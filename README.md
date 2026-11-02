@@ -13,7 +13,11 @@ The approved plan is in [`docs/plan.md`](docs/plan.md), and the research behind 
 
 ## Status
 
-Phase 0 tooling and the MVP-A foundation are in progress. See the build order in plan §10.
+MVP-A is built: the read-only Quartzy mirror, the duplicate guard (silent shadow mode, replay,
+labelling, then alerts tier by tier), claims and intake, search before you buy, asks, the
+in-flight board, nudges, digests and the lab-totals dashboard. Going live waits on Phase 0
+(below): the permanent hostname and email sender, the Quartzy token, and the people. The
+module contracts are in `docs/design/mvp-a.md`; members get `docs/cheat-sheet.md`.
 
 ## Development
 
@@ -54,6 +58,21 @@ Tests and lint:
 ```bash
 uv run pytest -q
 uv run ruff check . && uv run ruff format --check .
+```
+
+Browser tests (Playwright, phone-sized, failing on any CSP violation):
+
+```bash
+uv run --group e2e playwright install chromium   # once
+uv run --group e2e pytest -m e2e
+```
+
+A demo lab to click through (synthetic people, freezers, stock and the sample Quartzy history,
+replayed by the guard): run it on a development database only.
+
+```bash
+uv run python manage.py seed_demo --password demo-only-password
+uv run python manage.py runserver   # sign in as priya.patel@example.edu, or morgan.hale@example.edu (co-owner)
 ```
 
 ## Phase 0: measure Quartzy and the baseline

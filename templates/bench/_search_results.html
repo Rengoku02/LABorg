@@ -17,7 +17,7 @@
     <li><a href="{{ item_view.url }}">{{ item_view.product_name }}</a>
       <span class="meta">{{ item_view.vendor }} {{ item_view.catalog_number }} · {{ item_view.custodian_name }}{% if item_view.redacted %} · {{ item_view.ask_text }}{% else %} · {{ item_view.location_path|default:item_view.location_name }}{% if item_view.position %} {{ item_view.position }}{% endif %} · {{ item_view.visibility_label }}{% endif %}</span>
       {% if not item_view.viewer_is_custodian %}
-      <form class="inline" method="post" action="{% url 'bench:ask_owner' item_view.short_id %}">{% csrf_token %}<button type="submit" class="link">{{ item_view.ask_text|default:"Ask to borrow" }}</button></form>
+      <form class="inline" method="post" action="{% url 'bench:ask_owner' item_view.short_id %}">{% csrf_token %}<button type="submit" class="link">Ask to borrow some</button></form>
       {% endif %}
     </li>
     {% endfor %}

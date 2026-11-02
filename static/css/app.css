@@ -10,11 +10,17 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.45; }
 main { max-width: 960px; margin: 0 auto; padding: 16px; }
-.topbar { display: flex; gap: 12px; align-items: center; padding: 10px 16px;
+.topbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 16px;
           border-bottom: 1px solid var(--line); background: var(--card); }
 .topbar .brand { font-weight: 700; color: var(--fg); text-decoration: none; }
 .topbar .lab { color: var(--muted); }
-.topbar nav { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+.topbar nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.topbar nav a { white-space: nowrap; }
+/* Phones: the links get a row of their own, under the brand, and wrap there. */
+@media (max-width: 720px) {
+  .topbar nav { margin-left: 0; width: 100%; }
+  .topbar .who { margin-left: auto; }
+}
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
         padding: 16px; margin-bottom: 16px; }
 .inline { display: inline; }
@@ -31,3 +37,5 @@ select, input { font: inherit; padding: 8px; min-height: 44px; width: 100%; max-
 /* Site-wide notice while the Quartzy sync is behind (apps/quartzy/context_processors.py). */
 .sync-banner { margin: 0; padding: 8px 16px; text-align: center; color: var(--fg);
                background: var(--card); border-bottom: 2px solid var(--warn); }
+.foot { max-width: 960px; margin: 0 auto 24px; padding: 0 16px; color: var(--muted); }
+html, body { overflow-x: hidden; }

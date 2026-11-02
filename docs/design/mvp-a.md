@@ -904,3 +904,20 @@ return `Suppressed("budget")` once the recipient had `email.max_non_alert_per_we
 emails in the last 7 days. The personal digest is never suppressed (it consolidates what
 didn't go out) but counts. Exempt and not counted: `duplicate_alert`, `clear_to_order`,
 `ask_owner`, `stale_nudge`, `system`, `lab_summary`.
+
+## 11. Ops readiness (as built)
+
+- `apps/core/errors.py`: optional sentry-sdk (`LABSTOCK_SENTRY_DSN`), `send_default_pii=False`,
+  and `scrub_event` (no cookies, bodies, query strings, auth headers; `/a/` and `/claims/t/`
+  tokens and `/s?` searches redacted everywhere in the event).
+- `tests/test_deploy_check.py`: `manage.py check --deploy --fail-level WARNING` under
+  `labstock.settings.prod` with dummy settings.
+- `tests/e2e/` (dependency group `e2e`, marker `e2e`): pasted-URL search → ask the holder; the
+  claims email's link → an answer; an alert link → the confirm page → a recorded outcome. A
+  390 x 844 touch viewport; any CSP violation fails the test. CI runs them nightly and on
+  demand.
+- `apps/bench/models.FrictionReport` + `/friction/new` ("Something awkward? Tell us").
+- `apps/inventory/retention.pseudonymize_event_users` (policy
+  `inventory.pseudonymize_after_days`; monthly).
+- `manage.py seed_demo`: a demo lab (synthetic people, places, stock, and the sample Quartzy
+  history moved forward to now, replayed) for demos and screenshots; refuses an existing slug.

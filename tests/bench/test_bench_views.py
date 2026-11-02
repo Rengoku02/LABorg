@@ -307,3 +307,14 @@ def test_register_a_box_with_a_lid_photo(login, member, shelf):
     )
     assert bad.status_code == 200 and "a photo LabStock can keep" in bad.content.decode()
     assert not Location.objects.filter(name="Not a photo").exists()
+
+
+def test_feedback_reaches_the_system_owners_only(login, member):
+    from apps.bench.models import FrictionReport
+
+    client = login(member)
+    page = client.get(reverse("bench:friction"), {"page": "/claims/"})
+    assert page.status_code == 200
+    client.post(reverse("bench:friction"), {"page": "/claims/", "text": "Too many taps"})
+    report = FrictionReport.objects.get()
+    assert (report.page, report.text, report.user) == ("/claims/", "Too many taps", member)

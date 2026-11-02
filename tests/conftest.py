@@ -1,7 +1,13 @@
+import importlib.util
+
 import pytest
 from django.core.management import call_command
 
 from apps.core.models import Lab, Membership, User
+
+# The browser tests need the "e2e" dependency group (pytest-playwright); without it they
+# aren't collected at all (CI's main job), so a plain `pytest` still runs everywhere.
+collect_ignore = [] if importlib.util.find_spec("pytest_playwright") else ["e2e"]
 
 
 @pytest.fixture

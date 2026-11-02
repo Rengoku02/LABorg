@@ -158,6 +158,37 @@ as migration practice when you change hosts: restore, then change DNS.
   reads in a row with no answer or a 5xx (an outage). A token that lost sight of the whole lab
   shows in the head and sweep runs, which read its request list.
 
+## Schedules and lab-time jobs
+
+`manage.py setup_schedules` (run on every web start) syncs every app's Django-Q2 schedules,
+each app under its own prefix:
+
+| Schedule | Every | What |
+|---|---|---|
+| `quartzy.head.<n>`, `.sweep.<n>`, `.hot.<n>`, `.nightly.<n>` | 2 / 5 / 15 min, 03:00 | the mirror (§8) |
+| `quartzy.heartbeat`, `quartzy.spec_diff` | 5 min, weekly | monitoring |
+| `guard.safety_net` | 10 min | checks the signal missed, re-checks after resolution |
+| `guard.verify_outcomes` | 15 min | cancels seen in Quartzy, stale alert holds |
+| `inventory.tick` | hourly | Monday 08:00 claims round; ask batches at `asks.batch_hours`; 03:00 search-log purge; the 1st at 04:00 event pseudonymization |
+| `reports.tick` | hourly | Monday 08:00 personal digests, 08:30 PI summary; daily 09:00 nudges |
+
+The ticks read each lab's time zone, and every email has a once-per-week or once-per-subject
+key, so a tick that runs again (or late, after downtime) never sends twice.
+
+## Error tracking
+
+Set `LABSTOCK_SENTRY_DSN` (Sentry, or a self-hosted GlitchTip) to report exceptions. Events
+are scrubbed before they leave (`apps/core/errors.py`): no cookies, request bodies, query
+strings or auth headers, and signed-link tokens and search text are redacted. Leave it empty
+to turn reporting off.
+
+## Retention
+
+- Search logs: deleted after `search.log_retention_days` (30).
+- Stock events: once the PI sets `inventory.pseudonymize_after_days`, events older than that
+  stop naming who did them (a stable pseudonym per person; the monthly `inventory.tick`).
+- Feedback ("Something awkward?") is in Admin → Bench → Friction reports, for system owners.
+
 ## Drill log
 
 | Date | Snapshot | Rows (order requests) | Who |

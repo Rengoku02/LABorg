@@ -382,3 +382,24 @@ def _location(lab, code):
     if found is None:
         raise Http404("No such location")
     return found
+
+
+@require_http_methods(["GET", "POST"])
+@member_required
+def friction(request):
+    """ "Something was awkward": a short note for the system owners."""
+    from .models import FrictionReport
+
+    if request.method == "POST":
+        text = " ".join(request.POST.get("text", "").split())[:2000]
+        if text:
+            FrictionReport.objects.create(
+                lab=request.lab,
+                user=request.user,
+                page=request.POST.get("page", "")[:200],
+                text=text,
+            )
+            messages.success(request, "Thanks: the system owners will read it.")
+            return redirect("core:home")
+        messages.error(request, "Say what was awkward.")
+    return render(request, "bench/friction.html", {"page": request.GET.get("page", "")[:200]})

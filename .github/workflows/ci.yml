@@ -5,6 +5,8 @@ on:
     branches: [main, "claude/**"]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"  # nightly, for the browser tests
 
 permissions:
   contents: read
@@ -53,5 +55,43 @@ jobs:
       - name: Migrations are up to date
         run: uv run python manage.py makemigrations --check --dry-run --settings=labstock.settings.test
 
-      - name: Tests
+      - name: Tests (includes manage.py check --deploy under prod settings)
         run: uv run pytest -q -m "not e2e"
+
+  e2e:
+    # Browser tests: on demand and nightly (they need a browser download).
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_DB: labstock
+          POSTGRES_USER: labstock
+          POSTGRES_PASSWORD: labstock
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U labstock -d labstock"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://labstock:labstock@localhost:5432/labstock
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies (locked, with the e2e group)
+        run: uv sync --frozen --group e2e
+
+      - name: Install Chromium for Playwright
+        run: uv run --group e2e playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: uv run --group e2e pytest -q -m e2e

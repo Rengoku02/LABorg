@@ -8,12 +8,13 @@ from apps.core import schedules
 from apps.core.models import Lab
 from apps.core.policies import get_policy
 
-from . import asks, claims, search
+from . import asks, claims, retention, search
 
 SCHEDULE_PREFIX = "inventory."
 CLAIMS_WEEKDAY = 0  # Monday
 CLAIMS_HOUR = 8
 PURGE_HOUR = 3
+RETENTION_DAY, RETENTION_HOUR = 1, 4  # monthly, on the 1st at 04:00 lab time
 
 
 def tick(now=None):
@@ -23,6 +24,10 @@ def tick(now=None):
     done = []
     for lab in Lab.objects.all():
         local = schedules.local_now(lab, now)
+        if local.day == RETENTION_DAY and local.hour == RETENTION_HOUR:
+            changed = retention.pseudonymize_event_users(lab, now=now)
+            if changed:
+                done.append(f"{lab.slug}: {changed} stock events pseudonymized")
         if local.hour in (get_policy("asks.batch_hours", lab) or []):
             released = asks.release_ask_batches(lab, now=now)
             if released:

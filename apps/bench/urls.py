@@ -24,4 +24,5 @@ urlpatterns = [
     path("asks/owner/<str:short_id>", search_views.ask_owner_view, name="ask_owner"),
     path("asks/lab/", search_views.ask_lab_view, name="ask_lab"),
     path("board/", search_views.board, name="board"),
+    path("friction/new", views.friction, name="friction"),
 ]

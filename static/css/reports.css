@@ -7,3 +7,5 @@
 .plain { width: 100%; border-collapse: collapse; }
 .plain th, .plain td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 .meta { color: var(--muted); }
+.scroll { overflow-x: auto; max-width: 100%; }
+.plain td, .plain th { white-space: nowrap; }

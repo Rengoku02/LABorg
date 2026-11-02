@@ -20,20 +20,24 @@
   <h2>Coverage</h2>
   <p>Claims answered: {{ o.coverage.claims_answered }} of {{ o.coverage.claims_total }}{% if o.coverage.claims_share is not None %} ({% widthratio o.coverage.claims_share 1 100 %}%){% endif %}.</p>
   {% if o.coverage.freezers %}
+  <div class="scroll">
   <table class="plain">
     <thead><tr><th scope="col">Freezer / fridge / dewar</th><th scope="col">Boxes</th><th scope="col">With an owner</th></tr></thead>
     <tbody>{% for unit in o.coverage.freezers %}<tr><th scope="row">{{ unit.name }}</th><td>{{ unit.boxes }}</td><td>{{ unit.owned }}</td></tr>{% endfor %}</tbody>
   </table>
+  </div>
   {% endif %}
 </section>
 <section class="card">
   <h2>The duplicate guard</h2>
-  <p>Requests it can't check: {% if o.uncheckable.share is None %}—{% else %}{% widthratio o.uncheckable.share 1 100 %}%{% endif %} of {{ o.uncheckable.checked }}.</p>
+  <p>Requests it can't check: {% if o.uncheckable.share is None %}—{% else %}{% widthratio o.uncheckable.share 1 100 %}%{% endif %} of {{ o.uncheckable.checked }}{% if o.uncheckable.source == "replay" %} (in the replay of history; no live checks yet){% endif %}.</p>
   {% if o.tiers %}
+  <div class="scroll">
   <table class="plain">
     <thead><tr><th scope="col">Match</th><th scope="col">Found</th><th scope="col">Labelled</th><th scope="col">Precision</th><th scope="col">Gate</th></tr></thead>
     <tbody>{% for tier in o.tiers %}<tr><th scope="row">{{ tier.name }}</th><td>{{ tier.matches }}</td><td>{{ tier.labelled }}</td><td>{% if tier.precision is None %}—{% else %}{{ tier.precision|floatformat:2 }}{% endif %}</td><td>{% if tier.gate_ok %}passes{% else %}not yet{% endif %}</td></tr>{% endfor %}</tbody>
   </table>
+  </div>
   {% endif %}
 </section>
 {% endblock %}

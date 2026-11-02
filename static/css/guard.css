@@ -1,5 +1,5 @@
 /* The duplicate guard's pages (apps/guard). */
-.gates { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.gates { width: 100%; border-collapse: collapse; margin-top: 8px; display: block; overflow-x: auto; }
 .gates th, .gates td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 .gates tr.sub th { padding-left: 24px; font-weight: normal; color: var(--muted); }
 .gates .ok { color: var(--ok); font-weight: 600; }

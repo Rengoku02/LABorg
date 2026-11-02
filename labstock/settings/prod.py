@@ -32,3 +32,11 @@ if env("LABSTOCK_MAIL_API_KEY"):
     _option_name = env("LABSTOCK_MAIL_API_KEY_OPTION", "server_token")
     _mail_options[_option_name] = env("LABSTOCK_MAIL_API_KEY")
 MAILERS = {"default": {"BACKEND": _mail_backend, "OPTIONS": _mail_options}}
+
+# Error tracking (plan §6): optional; Sentry or a self-hosted GlitchTip. Events are scrubbed
+# of tokens, searches, cookies and personal data before they leave (apps/core/errors.py).
+from apps.core.errors import init_error_tracking  # noqa: E402
+
+init_error_tracking(
+    env("LABSTOCK_SENTRY_DSN", ""), environment=env("LABSTOCK_ENVIRONMENT", "production")
+)
