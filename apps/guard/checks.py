@@ -8,8 +8,9 @@ would have fired, then decides the status:
 2. ``no_match``, or ``suppressed`` when every match is;
 3. live checks only: ``unarmed`` when the request predates ``QuartzyLab.alerts_armed_at``,
    ``late`` when it is checked more than ``alerts.late_after_hours`` after it was made;
-4. otherwise ``shadow_only``. Alerts (``alerted``, ``held``, ``clear``) come with the alert
-   milestone; until then the guard only records.
+4. otherwise ``shadow_only``, unless ``alerts.plan_alert`` sends it: ``alerted`` (or
+   ``held`` by the burst hold); a timely ``no_match`` may become ``clear`` (a receipt).
+   While ``alerts.enabled`` is false the guard only records (shadow mode).
 
 Each check runs in one transaction under a per-lab advisory lock, so concurrent runs of the
 same batch make one check each, and counts per cycle stay consistent. A check is final for
@@ -29,7 +30,7 @@ from apps.quartzy.locks import lock_id
 from apps.quartzy.models import OrderRequest
 from apps.quartzy.presenters import request_value, requester_name
 
-from . import suppression
+from . import alerts, suppression
 from .matcher import (
     MATCHER_VERSION,
     UNRESOLVED,
@@ -138,8 +139,17 @@ def _build(order_request, check, *, run, replay, now):
     check.quartzy_native_would_fire_norm = norm_fires
     check.as_of = as_of
     check.decided_at = now
+    check.hold_reason = ""
     check.save()
     _save_matches(check, order_request, candidates, suppressed)
+    # Live and timely: the alert step (a no-op while alerts are off, i.e. in shadow mode).
+    timely = not replay and not late and reason is None and is_armed(order_request)
+    if timely and status == Status.SHADOW_ONLY:
+        check.status = alerts.plan_alert(check, order_request, run=run, now=now)
+    elif timely and status == Status.NO_MATCH:
+        check.status = alerts.plan_clear_receipt(check, order_request)
+    if check.status != status or check.hold_reason or not check.shadow:
+        check.save(update_fields=["status", "shadow", "hold_reason"])
     return check
 
 

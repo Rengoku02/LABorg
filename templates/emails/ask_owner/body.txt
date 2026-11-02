@@ -1,0 +1,7 @@
+{% extends "emails/base.txt" %}{% block body %}Hi {{ notification.recipient.get_short_name }},
+
+{% if notification.context.role == "share" %}{{ asker_name }} is about to order {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}), which you have on order. Could your order cover both?{% else %}{{ asker_name }} would like to borrow some {{ product_name }}{% if item_view %} ({{ item_view.vendor }} {{ item_view.catalog_number }}{% if item_view.location_path %}, {{ item_view.location_path }}{% endif %}){% endif %} instead of buying it.{% endif %}
+
+Reply to this email to arrange it with them, or answer with one tap:
+{% for label, url in answer_links %}  - {{ label }}: {{ url }}
+{% endfor %}{% endblock %}

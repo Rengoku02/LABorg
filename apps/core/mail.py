@@ -225,3 +225,17 @@ def notify_admins(lab, *, title, message, subject_obj, period_key=""):
             period_key=period_key,
             context={"title": title, "message": message},
         )
+
+
+@register_context_builder(Notification.Kind.SYSTEM)
+def _system_actions(notification):
+    """System mail may carry one-tap actions (e.g. the circuit breaker's Release):
+    ``context["actions"] = [[name, label], ...]``, registered with core.actions."""
+    from .actions import action_url
+
+    return {
+        "action_links": [
+            (label, action_url(notification, name))
+            for name, label in notification.context.get("actions", [])
+        ]
+    }

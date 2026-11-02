@@ -991,3 +991,83 @@ class HistoryClaim(models.Model):
 
     def __str__(self):
         return f"{self.person} · {self.order_request} ({self.get_outcome_display()})"
+
+
+class AskThreadQuerySet(models.QuerySet):
+    def for_lab(self, lab):
+        return self.filter(lab=lab)
+
+
+class AskThread(models.Model):
+    """Someone asks for something instead of buying it (plan §5 "Check before you buy"):
+    its holder ("ask owner"), the earlier requester of an open order ("share"), or the whole
+    lab ("ask the lab"). Replies come back as AskReplies; email replies go to the asker
+    directly (Reply-To), never through LabStock."""
+
+    class Kind(models.TextChoices):
+        OWNER = "owner", "Ask the holder"
+        SHARE = "share", "Ask to share an order"
+        LAB = "lab", "Ask the lab"
+
+    class Source(models.TextChoices):
+        ALERT = "alert", "Duplicate alert"
+        SEARCH = "search", "Search"
+        ITEM = "item", "Item page"
+
+    lab = models.ForeignKey("core.Lab", on_delete=models.CASCADE, related_name="ask_threads")
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    source = models.CharField(max_length=10, choices=Source.choices)
+    asker = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ask_threads"
+    )
+    product = models.ForeignKey(
+        "catalog.Product", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    stock_item = models.ForeignKey(
+        StockItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="ask_threads"
+    )
+    order_request = models.ForeignKey(
+        "quartzy.OrderRequest",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ask_threads",
+    )
+    urgent = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    objects = AskThreadQuerySet.as_manager()
+
+    class Meta:
+        indexes = [models.Index(fields=["lab", "asker", "created_at"], name="inv_ask_asker")]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} by {self.asker} ({self.created_at:%Y-%m-%d})"
+
+
+class AskReply(models.Model):
+    class Answer(models.TextChoices):
+        LEND = "lend", "Yes, borrow some"
+        NONE_LEFT = "none_left", "None left"
+        SHARE_OK = "share_ok", "Yes, share my order"
+        HAVE_IT = "have_it", "I have it"
+        MAYBE = "maybe", "Maybe"
+        NO = "no", "No"
+
+    thread = models.ForeignKey(AskThread, on_delete=models.CASCADE, related_name="replies")
+    responder = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+"
+    )
+    answer = models.CharField(max_length=12, choices=Answer.choices)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["thread", "responder"], name="inventory_askreply_one_per_responder"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.responder}: {self.get_answer_display()}"

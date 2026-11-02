@@ -1,1 +1,1 @@
-[LabStock] {{ title }}
+{% autoescape off %}[LabStock] {{ title }}{% endautoescape %}

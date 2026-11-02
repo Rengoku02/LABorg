@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My duplicate alerts · LabStock{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/guard.css' %}">{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>My duplicate alerts</h1>
+  <p class="meta">Only you see this page. The PI sees lab totals only.</p>
+</section>
+{% for alert_view in alert_views %}
+<article class="card match">
+  {% with request_view=alert_view.request %}
+  <h2>{{ request_view.item_name }}</h2>
+  <p>{{ request_view.vendor }} {{ request_view.catalog_number }} · {{ alert_view.created_at|date:"Y-m-d" }}</p>
+  {% endwith %}
+  <p class="meta">{{ alert_view.status_label }}{% if alert_view.outcomes %} · {{ alert_view.outcomes|join:", " }}{% endif %}</p>
+  {% for name, label in alert_view.follow_ups %}
+  <form method="post" action="{% url 'guard:mine_follow_up' alert_view.pk name %}">
+    {% csrf_token %}<button type="submit">{{ label }}</button>
+  </form>
+  {% endfor %}
+</article>
+{% empty %}
+<section class="card"><p>No duplicate alerts in the last 90 days.</p></section>
+{% endfor %}
+{% endblock %}

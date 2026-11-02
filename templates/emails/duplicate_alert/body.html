@@ -1,0 +1,18 @@
+{% extends "emails/base.html" %}{% block body %}{% if role == "earlier" %}
+<p>Hi {{ notification.recipient.get_short_name }},</p>
+<p>{{ request_view.requester_name|default:"Someone" }} just requested <strong>{{ request_view.item_name }}</strong> ({{ request_view.vendor }} {{ request_view.catalog_number }}). You have the same thing on order{% if other_view %} ({{ other_view.status_label }}){% endif %}.</p>
+<p>If your order can cover both, reply to this email to arrange it.</p>
+{% else %}
+<p>You requested <strong>{{ request_view.item_name }}</strong> ({{ request_view.vendor }} {{ request_view.catalog_number }}{% if request_view.unit_size %}, {{ request_view.unit_size }}{% endif %}).</p>
+{% if item_view %}
+<p><strong>{{ item_view.custodian_name }}</strong> has {{ item_view.product_name }} ({{ item_view.vendor }} {{ item_view.catalog_number }}){% if item_view.redacted %}. {{ item_view.ask_text }}.{% else %}{% if item_view.location_path %} in {{ item_view.location_path }}{% endif %}{% if item_view.position %}, {{ item_view.position }}{% endif %}.{% endif %}{% if probably %} <em>Not checked yet: probably still there.</em>{% endif %}</p>
+{% elif other_view %}
+<p><strong>{{ other_view.requester_name|default:"Someone" }}</strong> {% if match_kind == "open" %}requested{% else %}bought{% endif %} {{ other_view.item_name }} ({{ other_view.vendor }} {{ other_view.catalog_number }}) on {{ other_view.requested_at|date:"Y-m-d" }}{% if match_kind == "open" %} ({{ other_view.status_label }}{% if probably %}, probably arrived{% endif %}){% endif %}.</p>
+{% endif %}
+<p style="color:#57606a;">Why: {{ why }}.</p>
+<h3>Have you placed the vendor order yet?</h3>
+<p><strong>Not yet:</strong> {% for label, url in not_yet_links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p><strong>Yes:</strong> {% for label, url in already_links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p><strong>Either way:</strong> {% for label, url in always_links %}<a href="{{ url }}">{{ label }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p style="color:#57606a;">Each link asks you to confirm before anything is recorded. <a href="{{ mine_url }}">Your alerts</a></p>
+{% endif %}{% endblock %}{% block footer %}<br>Only you receive this; the PI sees lab totals only. <a href="{{ search_url }}">Search LabStock before you order.</a>{% endblock %}

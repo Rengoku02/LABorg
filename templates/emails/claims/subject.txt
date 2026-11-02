@@ -1,1 +1,1 @@
-[LabStock] Claim your history: {{ count }} item{{ count|pluralize }} to sort
+{% autoescape off %}[LabStock] Claim your history: {{ count }} item{{ count|pluralize }} to sort{% endautoescape %}

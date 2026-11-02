@@ -17,14 +17,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from apps.core.permissions import can_label_matches
+from apps.core.permissions import can_label_matches, is_member
 from apps.inventory.presenters import ItemView, present_items
 from apps.inventory.selectors import items_by_ids
 from apps.quartzy.models import OrderRequest
 from apps.quartzy.presenters import RequestView, present_requests, with_related
 
+from . import outcomes
 from .matcher import MATCHER_VERSION
-from .models import DuplicateCheck, DuplicateMatch
+from .models import DuplicateCheck, DuplicateMatch, Outcome
+from .outcomes import alerted_checks_of
 from .reports import precision_report
 
 PER_PAGE = 20
@@ -170,3 +172,72 @@ def label_match(request, pk):
             {"match_view": match_view, "buttons": LABEL_BUTTONS},
         )
     return redirect("guard:label_list")
+
+
+# ---------------------------------------------------------------------------------------
+# /guard/mine/: a requester's own alerts and their follow-ups
+
+
+@dataclass(frozen=True)
+class MyAlertView:
+    pk: int
+    request: RequestView | None
+    status_label: str
+    outcomes: tuple  # labels
+    follow_ups: tuple  # (name, label)
+    created_at: object
+
+
+FOLLOW_UPS = {
+    "vendor_confirmed": (
+        Outcome.Kind.VENDOR_CANCEL_INTENDED,
+        Outcome.Kind.VENDOR_CANCEL_CONFIRMED,
+        "The vendor confirmed the cancellation",
+    ),
+    "borrowed": (Outcome.Kind.BORROW_REQUESTED, Outcome.Kind.BORROWED, "I borrowed it"),
+}
+
+
+@require_GET
+@login_required
+def mine(request):
+    lab = getattr(request, "lab", None)
+    if lab is None or not is_member(request.user, lab):
+        raise PermissionDenied
+    checks = list(alerted_checks_of(request.user, lab))
+    rows = with_related(OrderRequest.objects.filter(pk__in=[c.order_request_id for c in checks]))
+    requests = {view.pk: view for view in present_requests(rows, request.user, channel="page")}
+    views = []
+    for check in checks:
+        kinds = {outcome.kind for outcome in check.outcomes.all()}
+        labels = dict(Outcome.Kind.choices)
+        follow_ups = tuple(
+            (name, label)
+            for name, (needs, gives, label) in FOLLOW_UPS.items()
+            if needs in kinds and gives not in kinds
+        )
+        views.append(
+            MyAlertView(
+                pk=check.pk,
+                request=requests.get(check.order_request_id),
+                status_label=check.get_status_display(),
+                outcomes=tuple(labels[kind] for kind in sorted(kinds)),
+                follow_ups=follow_ups,
+                created_at=check.created_at,
+            )
+        )
+    return render(request, "guard/mine.html", {"alert_views": views})
+
+
+@require_POST
+@login_required
+def mine_follow_up(request, pk, name):
+    lab = getattr(request, "lab", None)
+    if lab is None or not is_member(request.user, lab) or name not in FOLLOW_UPS:
+        raise PermissionDenied
+    check = get_object_or_404(alerted_checks_of(request.user, lab, days=365), pk=pk)
+    needs, gives, _label = FOLLOW_UPS[name]
+    if not check.outcomes.filter(kind=needs).exists():
+        return HttpResponseBadRequest("Nothing to follow up.")
+    outcomes.record(check, gives, by=request.user, verified=True)
+    return redirect("guard:mine")

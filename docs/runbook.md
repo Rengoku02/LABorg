@@ -69,6 +69,32 @@ suggested (Admin → Quartzy types: confirm or correct those first). Running it 
 first arming time, so requests made since then (say, while the worker was down) can still
 alert; `--rearm` moves it to now on purpose.
 
+## Alerts: shadow weeks and going live
+
+Until a tier goes live the guard only records (shadow mode): every new request gets a check
+and nobody is emailed.
+
+1. Replay history so the co-owner has matches to label from day one:
+   `manage.py guard_replay --lab <slug> --months 12`.
+2. The co-owner labels matches at `/guard/label/` (~15 min a week); live shadow matches come
+   first.
+3. Read the gates: `manage.py guard_report --lab <slug>`. A row passes when at least
+   `guard.go_live_min_labelled` (30) of its matches are labelled and at least
+   `guard.go_live_min_precision` (0.85) of those are the same thing.
+4. Go live tier by tier, in the admin (Core → Policy settings, for the lab):
+   - after at least 1 week of shadow, and once `T1/open` passes: `alerts.tiers_live` =
+     `["T1/open"]`, `alerts.enabled` = `true`, and `alerts.clear_to_order_until` = launch +
+     8 weeks (an ISO date, e.g. `"2027-03-01"`) for the "No match — clear to order" receipts;
+   - then each other row (`"T1"`, `"T1x"`, `"T2"`, or a kind such as `"T1/stock"`) as it
+     passes, after 2–4 weeks of shadow.
+5. Watch `/guard/label/` and the requesters' "Not the same thing" answers (shown there as
+   suggestions). If a live tier's precision falls, take it out of `alerts.tiers_live`.
+
+Safety nets while live: alerts of one sync cycle are held until the cycle ends; more than
+`alerts.circuit_breaker_max` (10) of them stay held and the system owners get an email with a
+one-tap *Release* link. More than `alerts.burst_max_requests` (8) requests from one person in
+`alerts.burst_window_minutes` (15) hold that person's alerts (release them in the admin).
+
 ## Quartzy token rotation (owner leaving, leak, expiry)
 
 1. The new owner creates a token in Quartzy: Profile Settings → Access Tokens. A Lab Member

@@ -10,6 +10,6 @@ class InventoryConfig(AppConfig):
     def ready(self):
         from apps.core import schedules
 
-        from . import claims, tasks  # noqa: F401  (claims registers its email context)
+        from . import asks, claims, tasks  # noqa: F401  (they register email hooks)
 
         schedules.register(tasks.SCHEDULE_PREFIX, tasks.wanted_schedules)

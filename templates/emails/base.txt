@@ -1,4 +1,4 @@
-{% block body %}{% endblock %}
+{% autoescape off %}{% block body %}{% endblock %}
 --
 LabStock · {{ site_url }}
-{% block footer %}{% endblock %}
+{% block footer %}{% endblock %}{% endautoescape %}

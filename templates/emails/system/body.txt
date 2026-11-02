@@ -1,3 +1,5 @@
 {% extends "emails/base.txt" %}{% block body %}{{ title }}
 
-{{ message }}{% endblock %}
+{{ message }}{% for label, url in action_links %}
+
+{{ label }}: {{ url }}{% endfor %}{% endblock %}

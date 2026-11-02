@@ -127,4 +127,5 @@ def test_an_action_can_add_to_its_confirm_page_without_acting(client, notificati
 
 def test_actions_for_lists_a_kinds_actions_in_order():
     names = [action.name for action in actions.actions_for(Notification.Kind.SYSTEM)]
-    assert names[:2] == ["ack", "keep"] and "peek" in names
+    # Apps register SYSTEM actions too (the guard's "release_alerts"); ours keep their order.
+    assert names.index("ack") < names.index("keep") < names.index("peek")

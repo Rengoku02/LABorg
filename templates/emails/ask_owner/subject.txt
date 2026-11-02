@@ -1,0 +1,1 @@
+{% autoescape off %}{% if notification.context.role == "share" %}{{ asker_name }} asks: could your order cover theirs too?{% else %}{{ asker_name }} would like to borrow some {{ product_name|truncatechars:60 }}{% endif %}{% endautoescape %}

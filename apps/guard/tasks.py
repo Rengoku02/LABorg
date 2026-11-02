@@ -10,6 +10,7 @@ from django_q.tasks import async_task
 
 from apps.quartzy.models import OrderRequest
 
+from . import alerts, outcomes
 from .checks import check_request
 from .matcher import MATCHER_VERSION, UNRESOLVED
 from .models import CheckRun, DuplicateCheck
@@ -41,6 +42,7 @@ def check_requests(request_ids, via, run_id=None):
         return f"{len(chunk)} checked, {len(rest)} queued"
     run.finished_at = timezone.now()
     run.save(update_fields=["finished_at"])
+    alerts.finish_cycle(run)  # release the run's alerts, or trip the circuit breaker
     return f"{len(chunk)} checked"
 
 
@@ -81,6 +83,14 @@ def safety_net(now=None):
     return f"{sum(len(ids) for ids in by_lab.values())} checked"
 
 
+def verify_outcomes():
+    """Every 15 minutes: cancel and join intentions the sync has seen happen; and the alert
+    holds of runs that never finished."""
+    verified = outcomes.verify_outcomes()
+    released = alerts.release_stale_cycles()
+    return f"{verified} verified, {released} stale cycle(s) released"
+
+
 def wanted_schedules():
     """The ``guard.`` schedules (apps.core.schedules)."""
     from django_q.models import Schedule
@@ -90,5 +100,10 @@ def wanted_schedules():
             "func": "apps.guard.tasks.safety_net",
             "schedule_type": Schedule.MINUTES,
             "minutes": 10,
+        },
+        "guard.verify_outcomes": {
+            "func": "apps.guard.tasks.verify_outcomes",
+            "schedule_type": Schedule.MINUTES,
+            "minutes": 15,
         },
     }

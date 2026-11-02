@@ -1,0 +1,26 @@
+{% extends "emails/base.txt" %}{% block body %}{% if role == "earlier" %}Hi {{ notification.recipient.get_short_name }},
+
+{{ request_view.requester_name|default:"Someone" }} just requested {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}). You have the same thing on order{% if other_view %} ({{ other_view.status_label }}){% endif %}.
+
+If your order can cover both, reply to this email to arrange it.
+{% else %}You requested: {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}{% if request_view.unit_size %}, {{ request_view.unit_size }}{% endif %}).
+{% if item_view %}
+{{ item_view.custodian_name }} has {{ item_view.product_name }} ({{ item_view.vendor }} {{ item_view.catalog_number }}){% if item_view.redacted %}. {{ item_view.ask_text }}.{% else %}{% if item_view.location_path %} in {{ item_view.location_path }}{% endif %}{% if item_view.position %}, {{ item_view.position }}{% endif %}.{% endif %}{% if probably %} (Not checked yet: probably still there.){% endif %}
+{% elif other_view %}
+{{ other_view.requester_name|default:"Someone" }} {% if match_kind == "open" %}requested{% else %}bought{% endif %} {{ other_view.item_name }} ({{ other_view.vendor }} {{ other_view.catalog_number }}) on {{ other_view.requested_at|date:"Y-m-d" }}{% if match_kind == "open" %} ({{ other_view.status_label }}{% if probably %}, probably arrived{% endif %}){% endif %}.
+{% endif %}Why: {{ why }}.
+
+Have you placed the vendor order yet?
+
+Not yet:
+{% for label, url in not_yet_links %}  - {{ label }}: {{ url }}
+{% endfor %}
+Yes:
+{% for label, url in already_links %}  - {{ label }}: {{ url }}
+{% endfor %}
+Either way:
+{% for label, url in always_links %}  - {{ label }}: {{ url }}
+{% endfor %}
+Each link asks you to confirm before anything is recorded. Later: {{ mine_url }}
+{% endif %}{% endblock %}{% block footer %}Only you receive this; the PI sees lab totals only.
+Search LabStock before you order: {{ search_url }}{% endblock %}

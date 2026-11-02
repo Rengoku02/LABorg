@@ -795,6 +795,27 @@ bumps it (a new version checks every request again, and labels carry over by pai
     `vendor_cancel_confirmed` and `borrowed`.
   - It is excluded when the same person makes an equivalent request within 30 days, or when
     Quartzy's own warning would have fired (counted separately).
+- **As built** (`apps/guard/alerts.py`, `actions.py`, `outcomes.py`;
+  `apps/inventory/asks.py`):
+  - `alerts.tiers_live` takes tiers (`"T1"`) or a tier and candidate kind (`"T1/open"`).
+    `alerts.plan_alert` runs inside the check's transaction; a requester who isn't a current
+    member with an email gets no alert (the check stays `shadow_only`, with the reason in
+    `hold_reason`).
+  - Alerts of a CheckRun are queued held (`cycle:<run>`); `alerts.finish_cycle` releases them
+    when the run ends, or trips the breaker (`circuit:<run>`, the checks become `held`) and
+    emails the system owners a SYSTEM notification whose `context["actions"]` carries the
+    one-tap `release_alerts`. `tasks.verify_outcomes` (every 15 minutes) also releases the
+    holds of runs that never finished.
+  - The earlier requester of an open match gets an informational copy (`role="earlier"`,
+    Reply-To the new requester, no action links; its links refuse to act).
+  - Borrow and share go through `AskThread`/`AskReply` (inventory): kind `ask_owner` mail
+    with *Yes, borrow some* / *None left* (or *Yes, share my order*); a "lend" reply sends
+    `inventory.signals.ask_answered`, and the guard records a verified `borrowed`.
+  - Follow-ups after the single-use alert link: `/guard/mine/` (*The vendor confirmed the
+    cancellation*, *I borrowed it*).
+  - `outcomes.value_avoided(lab, start, end)` returns the amount and count, and apart: the
+    ones Quartzy's warning would have caught and the ones bought again within 30 days.
+  - Plain-text email parts and subjects render with autoescape off.
 - **Labelling page** (`/guard/label/`, `can_label_matches` only):
   - Shows unlabelled matches, live shadow first and then replay, sorted by $.
   - Each row has three htmx buttons (same thing / related, not a duplicate / different) and is

@@ -1,0 +1,6 @@
+{% extends "core/action_confirm.html" %}
+{% block confirm_extra %}
+<p>Contact {{ vendor|default:"the vendor" }} and quote your order's confirmation number
+  {% if quartzy_url %}(it's on <a href="{{ quartzy_url }}">the request in Quartzy</a>){% endif %}.
+  When they confirm, say so on your alerts page.</p>
+{% endblock %}

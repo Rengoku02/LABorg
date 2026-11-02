@@ -9,9 +9,11 @@ class GuardConfig(AppConfig):
 
     def ready(self):
         from apps.core import schedules
+        from apps.inventory.signals import ask_answered
         from apps.quartzy.signals import requests_synced
 
-        from . import receivers, tasks
+        from . import actions, alerts, receivers, tasks  # noqa: F401  (they register hooks)
 
         requests_synced.connect(receivers.requests_synced, dispatch_uid="guard.requests_synced")
+        ask_answered.connect(receivers.ask_answered, dispatch_uid="guard.ask_answered")
         schedules.register(tasks.SCHEDULE_PREFIX, tasks.wanted_schedules)

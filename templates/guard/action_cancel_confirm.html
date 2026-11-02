@@ -1,0 +1,6 @@
+{% extends "core/action_confirm.html" %}
+{% block confirm_extra %}
+<p>LabStock can't change Quartzy: cancel the request there, then confirm here.
+  {% if quartzy_url %}<a href="{{ quartzy_url }}">Open the request in Quartzy</a>.{% endif %}</p>
+{% if lab_admins %}<p>It is already {{ status|lower }}, so only a Quartzy Lab Admin can cancel it: ask {{ lab_admins|join:" or " }}.</p>{% endif %}
+{% endblock %}

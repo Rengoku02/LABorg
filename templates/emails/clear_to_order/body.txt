@@ -1,0 +1,6 @@
+{% extends "emails/base.txt" %}{% block body %}You requested {{ request_view.item_name }} ({{ request_view.vendor }} {{ request_view.catalog_number }}).
+
+LabStock found nothing like it in the lab, on order, or bought in the last {{ months }} months. Clear to order.
+
+(These receipts run for the first weeks of LabStock, so you can see the check happened.)
+{% endblock %}

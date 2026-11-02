@@ -1,0 +1,3 @@
+{% extends "emails/base.html" %}{% block body %}<p>You requested <strong>{{ request_view.item_name }}</strong> ({{ request_view.vendor }} {{ request_view.catalog_number }}).</p>
+<p>LabStock found nothing like it in the lab, on order, or bought in the last {{ months }} months. <strong>Clear to order.</strong></p>
+<p style="color:#57606a;">These receipts run for the first weeks of LabStock, so you can see the check happened.</p>{% endblock %}

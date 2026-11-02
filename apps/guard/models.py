@@ -261,6 +261,14 @@ class Outcome(models.Model):
         blank=True,
         related_name="+",
     )
+    # The borrow or share ask the outcome started (its reply verifies a borrow).
+    ask_thread = models.ForeignKey(
+        "inventory.AskThread",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="outcomes",
+    )
 
     class Meta:
         constraints = [
